@@ -1,0 +1,1 @@
+The backend server for Trojan Check in / Check out app, based on Node.js and Express.
