@@ -9,6 +9,7 @@ var accountRouter = require('./routers/account');
 var studentRouter = require('./routers/student');
 var managerRouter = require('./routers/manager');
 
+// http connection
 if(process.argv.length > 2 && process.argv[2] === "-https") {
     cert = fs.readFileSync('C:/Certbot/live/terrytang.dev/fullchain.pem');
     privkey = fs.readFileSync('C:/Certbot/live/terrytang.dev/privkey.pem');
@@ -39,3 +40,15 @@ if(useHttps) {
         console.log("HTTPS server running");
     });
 }
+
+// heroku postgres database connection
+const { Client } = require('pg');
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+client.connect();
