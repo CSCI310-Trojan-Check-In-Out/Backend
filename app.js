@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 httpServer = http.createServer(app);
-httpServer.listen(80, () => {
+httpServer.listen(process.env.PORT || 80, () => {
     console.log('HTTP server running')
 });
 
