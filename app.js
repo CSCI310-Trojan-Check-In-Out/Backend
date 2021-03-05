@@ -3,21 +3,17 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var fs = require('fs');
 var http = require('http');
-var https = require('https');
-var cert, privkey, useHttps = false;
+var useHttps = false;
 var accountRouter = require('./routers/account');
 var studentRouter = require('./routers/student');
 var managerRouter = require('./routers/manager');
 
 // http connection
 if(process.argv.length > 2 && process.argv[2] === "-https") {
-    cert = fs.readFileSync('C:/Certbot/live/terrytang.dev/fullchain.pem');
-    privkey = fs.readFileSync('C:/Certbot/live/terrytang.dev/privkey.pem');
     useHttps = true;
 }
 
 var app = express();
-
 app.use(cookieParser());
 app.use(session({secret: "secret"}));
 
@@ -35,6 +31,10 @@ httpServer.listen(process.env.PORT || 80, () => {
 });
 
 if(useHttps) {
+    var https = require('https');
+    var cert, privkey;
+    cert = fs.readFileSync('C:/Certbot/live/terrytang.dev/fullchain.pem');
+    privkey = fs.readFileSync('C:/Certbot/live/terrytang.dev/privkey.pem');
     httpsServer = https.createServer({key: privkey, cert: cert}, app);
     httpsServer.listen(443, () => {
         console.log("HTTPS server running");
