@@ -8,7 +8,7 @@ var accountRouter = require('./routers/account');
 var studentRouter = require('./routers/student');
 var managerRouter = require('./routers/manager');
 
-// http connection
+// https connection
 if(process.argv.length > 2 && process.argv[2] === "-https") {
     useHttps = true;
 }
