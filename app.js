@@ -14,8 +14,12 @@ if(process.argv.length > 2 && process.argv[2] === "-https") {
 }
 
 var app = express();
+
 app.use(cookieParser());
 app.use(session({secret: "secret"}));
+
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
 
 app.use('/account', accountRouter);
 app.use('/student', studentRouter);
