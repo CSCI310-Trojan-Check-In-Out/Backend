@@ -70,8 +70,12 @@ router.post('/login', function (req, res) {
 });
 
 router.post('/logout', function(req, res) {
-    req.session.destroy();
-    res.sendStatus(200);
+    req.session.regenerate(function(err) {
+        if(err) {
+            console.log(err);
+        }
+        res.sendStatus(200);
+    });
 });
 
 router.post('/changePassword', function(req, res) {
