@@ -1,11 +1,11 @@
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var fs = require('fs');
-var http = require('http');
-var accountRouter = require('./routers/account');
-var studentRouter = require('./routers/student');
-var managerRouter = require('./routers/manager');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const fs = require('fs');
+const http = require('http');
+const accountRouter = require('./routers/account');
+const studentRouter = require('./routers/student');
+const managerRouter = require('./routers/manager');
 
 var useHttps = false;
 
