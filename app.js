@@ -3,10 +3,11 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var fs = require('fs');
 var http = require('http');
-var useHttps = false;
 var accountRouter = require('./routers/account');
 var studentRouter = require('./routers/student');
 var managerRouter = require('./routers/manager');
+
+var useHttps = false;
 
 // https connection
 if(process.argv.length > 2 && process.argv[2] === "-https") {
@@ -17,7 +18,6 @@ var app = express();
 
 app.use(cookieParser());
 app.use(session({secret: "secret"}));
-
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
@@ -46,9 +46,7 @@ if(useHttps) {
     });
 }
 
-// heroku postgres database connection
 const { Client } = require('pg');
-
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
   ssl: {
