@@ -1,5 +1,18 @@
 const express = require('express');
 const router = express.Router();
+// connect to database
+const pool = require('../database/db').pool;
+
+// example of querying database
+router.get('/test', function(req, res) {
+    try {
+        const allAccounts = pool.query('SELECT * FROM account;');
+        res.json(allAccounts.rows);
+    } catch (err) {
+        console.error(err.message);
+        return;
+    }
+});
 
 router.get('/', function(req, res) {
     res.send("Account endpoint page. This is used to serve all APIs related to account management (registration, log in, etc.).");
