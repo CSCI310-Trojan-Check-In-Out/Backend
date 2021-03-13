@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 // connect to database
-const pool = require('../database/db').pool;
+const {pool: pool} = require('../database/db');
 
 // example of querying database
 router.get('/test', function(req, res) {
