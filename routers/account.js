@@ -7,7 +7,11 @@ const {pool: pool} = require('../database/db');
 router.get('/test', function(req, res) {
     try {
         const allAccounts = pool.query('SELECT * FROM account;');
-        res.json(allAccounts.rows);
+        console.log('Querying all rows from account');
+        allAccounts.then(function(result) {
+            res.status(200).json(allAccounts.rows);
+        });
+        return;
     } catch (err) {
         console.error(err.message);
         return;
