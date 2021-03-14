@@ -2,6 +2,24 @@ const express = require('express');
 const multer = require('multer');
 const upload = multer();
 const router = express.Router();
+// connect to database
+const {pool: pool} = require('../database/db');
+
+// example of querying database
+router.get('/test', function(req, res) {
+    try {
+        console.log('Querying all rows from account');
+        pool.query('SELECT * FROM account;', (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+            res.status(200).json(val.rows);
+        });
+        return;
+    } catch (err) {
+        console.error(err.message);
+        return;
+    }
+});
 
 router.get('/', function(req, res) {
     res.send("Account endpoint page. This is used to serve all APIs related to account management (registration, log in, etc.).");
