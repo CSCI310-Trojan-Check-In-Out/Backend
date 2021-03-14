@@ -6,10 +6,11 @@ const {pool: pool} = require('../database/db');
 // example of querying database
 router.get('/test', function(req, res) {
     try {
-        const allAccounts = pool.query('SELECT * FROM account;');
         console.log('Querying all rows from account');
-        allAccounts.then(function(result) {
-            res.status(200).json(allAccounts.rows);
+        pool.query('SELECT * FROM account;', (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+            res.status(200).json(val.rows);
         });
         return;
     } catch (err) {
