@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+const upload = multer();
 const router = express.Router();
 // connect to database
 const {pool: pool} = require('../database/db');
@@ -23,9 +25,9 @@ router.get('/', function(req, res) {
     res.send("Account endpoint page. This is used to serve all APIs related to account management (registration, log in, etc.).");
 });
 
-router.post('/register', function(req, res) {
-    if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
-        res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
+router.post('/register', upload.none(), function(req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
 
@@ -60,9 +62,9 @@ router.post('/register', function(req, res) {
     res.sendStatus(200);
 });
 
-router.post('/login', function (req, res) {
-    if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
-        res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
+router.post('/login', upload.none(), function (req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
 
@@ -87,7 +89,12 @@ router.post('/login', function (req, res) {
     res.sendStatus(200);
 });
 
-router.post('/logout', function(req, res) {
+router.post('/logout', upload.none(), function(req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+        return;
+    }
+
     req.session.regenerate(function(err) {
         if(err) {
             console.log(err);
@@ -96,9 +103,9 @@ router.post('/logout', function(req, res) {
     });
 });
 
-router.post('/changePassword', function(req, res) {
-    if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
-        res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
+router.post('/changePassword', upload.none(), function(req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
 
@@ -114,7 +121,5 @@ router.post('/changePassword', function(req, res) {
 
     req.sendStatus(200);
 });
-
-
 
 module.exports = router;
