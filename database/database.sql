@@ -4,6 +4,7 @@ CREATE TABLE account (
 	id SERIAL PRIMARY KEY,
     usc_id VARCHAR(20),
 	username VARCHAR(100) UNIQUE,
+	major VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     passcode VARCHAR(64),
     picture VARCHAR(2083),
@@ -20,8 +21,7 @@ CREATE TABLE place (
     capacity INT,
     current_numbers INT,
     open_time DATE,
-    close_time DATE,
-    label VARCHAR(200)
+    close_time DATE
 );
 
 CREATE TABLE visit_history (
