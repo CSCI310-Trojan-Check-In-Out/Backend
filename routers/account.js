@@ -67,8 +67,20 @@ router.post('/login', upload.none(), function (req, res) {
         return;
     }
 
+
+     // TODO: change fake data
+     const data = {
+        id: 1,
+        usc_id: 111,
+        username: 'Nate',
+        email: 'huan773@usc.edu',
+        picture: 'picture.com',
+        isAdmin: true,
+        major: 'computer science',
+      };
+
     if(req.session.userid) {
-        res.sendStatus(200);
+        res.status(200).send([data]);
         return;
     }
 
@@ -85,7 +97,9 @@ router.post('/login', upload.none(), function (req, res) {
 
     // Temporary field; this should be guaranteed to be its userid
     req.session.userid = email;
-    res.sendStatus(200);
+
+   
+    res.status(200).send([data]);
 });
 
 router.post('/logout', upload.none(), function(req, res) {
