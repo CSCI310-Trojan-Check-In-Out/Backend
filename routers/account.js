@@ -14,10 +14,8 @@ router.get('/test', function(req, res) {
             console.log(JSON.stringify(val.rows));
             res.status(200).json(val.rows);
         });
-        return;
     } catch (err) {
         console.error(err.message);
-        return;
     }
 });
 
@@ -56,6 +54,7 @@ router.post('/register', upload.none(), function(req, res) {
     }
 
     // TODO: Check if same uscId already exists in database and store it if needed
+
 
     // Temporary field; this should be guaranteed to be its userid
     req.session.userid = uscId;
