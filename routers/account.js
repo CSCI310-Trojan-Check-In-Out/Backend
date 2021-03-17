@@ -72,10 +72,10 @@ router.post('/login', upload.none(), function (req, res) {
         return;
     }
 
-    let username = req.body.username;
+    let email = req.body.email;
     let password = req.body.password;
 
-    if(username === undefined ||
+    if(email === undefined ||
         password === undefined) {
         res.status(400).send("Missing form data.");
         return;
@@ -84,7 +84,7 @@ router.post('/login', upload.none(), function (req, res) {
     // TODO: Validate user credentials in the database
 
     // Temporary field; this should be guaranteed to be its userid
-    req.session.userid = username;
+    req.session.userid = email;
     res.sendStatus(200);
 });
 
