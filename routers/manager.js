@@ -8,7 +8,7 @@ var csv = require('fast-csv');
 // connect to database
 const {pool: pool} = require('../database/db');
 
-
+// check testing_files/testing.csv for format
 router.get('/', function(req, res) {
   res.send("Manager endpoint page. This is used to serve all APIs related to manager clients (upload CSV, view / edit history, etc.).");
 });
@@ -38,35 +38,27 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     }
   })
   .on("end", function () {
-    fs.unlinkSync(req.file.path);   // remove temp file
+  fs.unlinkSync(req.file.path);   // remove temp file
+    try {
+      console.log('Upload CSV');
+      for(let i = 0; i < dataRows.length; i++){
+        let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '" + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
+        console.log(sql_str);
+        pool.query(sql_str, (err, val) => {
+          if (err) throw err;
+        });
+      }
+      res.sendStatus(200);
+      return;
+    } catch (err) {
+      console.log(err);
+      res.status(400).send("Cannot insert");
+      return;
+    }
   });
 
-  try {
-    console.log('Upload CSV');
-    for(let i = 0; i < dataRows.length; i++){
-      let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity) VALUES (DEFAULT, '" + dataRows[0]+ "' ,'" + dataRows[1]+ "','" + dataRows[2]+ "', '" + dataRows[3]+ "'," + dataRows[4]+ ") RETURNING id;";
-
-      pool.query('DELETE from place where id=' + placeId, (err, val) => {
-        if (err) throw err;
-      });
-      console.log('Fetching ID');
-      pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
-        if (err) throw err;
-        console.log(JSON.stringify(val.rows));
-
-      });
-    }
-    res.sendStatus(200);
-    return;
-  } catch (err) {
-    res.status(400).send("Cannot insert");
-    return;
-  }
-
-  res.send(req.body);
 });
 
-// TO test
 // inputs place_name, abbreviation, place_address, picture, capacity, open_time, close_time
 // return placeId
 router.post('/add-place', upload.none(), function(req, res) {
@@ -97,11 +89,10 @@ router.post('/add-place', upload.none(), function(req, res) {
       res.status(400).send("Missing form data.");
       return;
   }
-  var placeId = 0;
   // TODO create a row in sql.
-  //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') RETURNING id;";
+  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') RETURNING id;";
   //let sql_str = "INSERT INTO place (id, place_name) VALUES (DEFAULT, 'asdf');";
-  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
+  //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
 
   try {
     console.log('Adding place');
@@ -118,7 +109,7 @@ router.post('/add-place', upload.none(), function(req, res) {
   }
 });
 
-  //
+// inputs: placeId
 router.post('/remove-place',  upload.none(), function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
@@ -135,78 +126,83 @@ router.post('/remove-place',  upload.none(), function(req, res) {
     return;
   }
 
-  // TODO remove it from sql
   try {
     console.log('Remove place');
     pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
       if (err) throw err;
     });
-    console.log('Fetching ID');
-    pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
-      if (err) throw err;
-      console.log(JSON.stringify(val.rows));
-      res.sendStatus(200);
-    });
+    res.sendStatus(200);
     return;
   } catch (err) {
-    res.status(400).send("Cannot insert");
+    res.status(400).send("Failed to remove");
     return;
   }
 });
 
 
-// inputs:userid, placeId, capacity
+// inputs: placeId, capacity
 // return: 200 or 400 with error message
-router.post('/update-capacity', function(req, res) {
+router.post('/update-capacity', upload.none(), function(req, res) {
 if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
-if(!req.session.userid) {
-  res.status(400).send("The client is not logged in.");
-  return;
-}
+// if(!req.session.userid) {
+//   res.status(400).send("The client is not logged in.");
+//   return;
+// }
 
 let placeId = req.body.placeId;
-let capacity = reqbody.capacity;
+let capacity = req.body.capacity;
 
 if(placeId === undefined ||
   capacity === undefined) {
-    res.status(40).send("Missing form data.");
+    res.status(404).send("Missing form data.");
     return;
   }
 
-  if(sql_status){
+  try {
+    console.log('Update place');
+    console.log(capacity);
+    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ';', (err, val) => {
+      if (err) throw err;
+    });
     res.sendStatus(200);
-  }else{
-    res.status(400).send("Failed to update.");
+    return;
+  } catch (err) {
+    res.status(400).send("Cannot update");
+    return;
   }
 });
 
 // return: string
-router.post('/get-qr-code', function(req, res) {
+router.post('/get-qr-code', upload.none(), function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
-  }  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
   }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
 
   let placeId = req.body.placeId;
   if(placeId === undefined) {
     res.status(400).send("Missing form data.");
     return;
   }
-  // TODO: check if the placeId Exists
 
-  // TODO: grep QR-code from database
-  var qrCode;
-  if(qrCode === undefined){
+  try {
+    console.log('Get QR Code');
+    pool.query('Select qr_code_token from place where id=' + placeId + ';', (err, val) => {
+      if (err) throw err;
+      console.log(val);
+      res.send(val);
+      return;
+    });
+  } catch (err) {
     res.status(400).send("Cannot get QR Code for this building");
     return;
-  }else{
-    res.send(qrCode);
   }
 
 });
@@ -234,50 +230,54 @@ if(placeId === undefined &&
   var searchResult = "TODO: Place Holder... Replaced by Json";
   // TODO searchResult from sql
 
-  if(searchResult === undefined){
-    res.send("Result Not Found");
+  try {
+    console.log('Building Listings');
+    pool.query('Select * from place;', (err, val) => {
+      if (err) throw err;
+      console.log(val);
+      res.send(val);
+      return;
+    });
+  } catch (err) {
+    res.status(400).send("Cannot get QR Code for this building");
     return;
-  }else{
-    res.send(searchResult);
   }
+
 
 });
 
 // return: json
 router.post('/list-all-buildings', function(req, res) {
-  if(!req.is('multipart/form-data')) {
-    res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-    return;
-  }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
 
-
-  var allBuildingList = "TODO: Building List... Replaced by Json";
-  // TODO searchResult from sql
-
-  if(allBuildingList === undefined){
-    res.send("No Building.");
+  try {
+    console.log('Building Listings');
+    pool.query('Select * from place;', (err, val) => {
+      if (err) throw err;
+      res.send(val);
+      return;
+    });
+  } catch (err) {
+    res.status(400).send("Get Building List Failed");
     return;
-  }else{
-    res.send(allBuildingList);
   }
 
 });
 
 // inputs: placeId
 // return: json
-router.post('/list-current-students', function(req, res) {
+router.post('/list-current-students', upload.none(), function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
 
   let placeId = req.body.placeId;
   if(placeId === undefined){
@@ -286,44 +286,33 @@ router.post('/list-current-students', function(req, res) {
   }
 
   var studentList = "TODO: Student List... Replaced by Json";
-  // TODO studentList from sql
 
   try {
-    console.log('Remove place');
-    pool.query('DELETE from place where id=' + placeId, (err, val) => {
+    console.log('Listing all the students in this place');
+    pool.query('Select * from account, visit_history where account.id=visit_history.account_id AND leave_time IS NULL AND visit_history.place_id=' +  placeId +';', (err, val) => {
       if (err) throw err;
+      res.send(val);
+      return;
     });
-    console.log('Fetching ID');
-    pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
-      if (err) throw err;
-      console.log(JSON.stringify(val.rows));
-      res.sendStatus(200);
-    });
-    return;
   } catch (err) {
-    res.status(400).send("Cannot insert");
+    res.status(400).send("Get Students List for a place Failed");
     return;
   }
-  if(studentList === undefined){
-    res.send("No Students.");
-    return;
-  }else{
-    res.send(studentList);
-  }
+
 });
 
 
 // inputs: studentId
 // return: 200 or 400 with error message
-router.post('/view-profile', function(req, res) {
+router.post('/view-profile', upload.none(),function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
 
   let studentId = req.body.studentId;
 
@@ -332,11 +321,16 @@ router.post('/view-profile', function(req, res) {
     return;
   }
 
-  let sql_status = true;// TODO: get students profile from db, and their visit history.
-  if(sql_status){
-    res.send("TODO: Send back json");
-  }else{
-    res.status(400).send("Failed to load student profile.");
+  try {
+    console.log('Listing all the students in this place');
+    pool.query('Select * from account, visit_history where account.id=visit_history.account_id and account_id=' + studentId + ';', (err, val) => {
+      if (err) throw err;
+      res.send(val);
+      return;
+    });
+  } catch (err) {
+    res.status(400).send("Get Stuednt Profile Failed");
+    return;
   }
 });
 
