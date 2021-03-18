@@ -35,24 +35,26 @@ router.post('/register', upload.none(), function(req, res) {
         return;
     }
 
+
     let fullName = req.body.fullName;
     let uscId = req.body.uscId;
     let password = req.body.password;
-    let uscEmail = req.body.uscEmail;
-    let accountType = req.body.accountType;
+    let email = req.body.email;
+    let isAdmin = req.body.isAdmin;
+    let major = req.body.major;
 
     // Firebase is going to handle profile picture upload
-    // let profilePic = req.body.profilepic;
+    // let image = req.body.image;
 
     if(fullName === undefined ||
         uscId === undefined ||
         password === undefined ||
-        uscEmail === undefined ||
-        accountType === undefined) {
+        email === undefined ||
+        isAdmin === undefined ||
+        major === undefined) {
         res.status(400).send("Missing form data.");
         return;
     }
-
     // TODO: Check if same uscId already exists in database and store it if needed
 
 
@@ -67,15 +69,27 @@ router.post('/login', upload.none(), function (req, res) {
         return;
     }
 
+
+     // TODO: change fake data
+     const data = {
+        id: 1,
+        usc_id: 111,
+        username: 'Nate',
+        email: 'huan773@usc.edu',
+        picture: 'picture.com',
+        isAdmin: true,
+        major: 'computer science',
+      };
+
     if(req.session.userid) {
-        res.sendStatus(200);
+        res.status(200).send([data]);
         return;
     }
 
-    let username = req.body.username;
+    let email = req.body.email;
     let password = req.body.password;
 
-    if(username === undefined ||
+    if(email === undefined ||
         password === undefined) {
         res.status(400).send("Missing form data.");
         return;
@@ -84,8 +98,10 @@ router.post('/login', upload.none(), function (req, res) {
     // TODO: Validate user credentials in the database
 
     // Temporary field; this should be guaranteed to be its userid
-    req.session.userid = username;
-    res.sendStatus(200);
+    req.session.userid = email;
+
+   
+    res.status(200).send([data]);
 });
 
 router.post('/logout', upload.none(), function(req, res) {
