@@ -1,35 +1,83 @@
 var express = require('express');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 var router = express.Router();
+var fs = require('fs');
+var csv = require('fast-csv');
+
+// connect to database
+const {pool: pool} = require('../database/db');
+
 
 router.get('/', function(req, res) {
     res.send("Manager endpoint page. This is used to serve all APIs related to manager clients (upload CSV, view / edit history, etc.).");
 });
 
-// TODO, csv form  
-router.post('/process-csv', function(req, res) {
-    if(req.header('Content-Type') !== 'form-data') {
-        res.status(400).send("Wrong form Content-Type. Should be form-data.");
+// TODO, csv form
+router.post('/process-csv', upload.single('place-csv'), function(req, res, next) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
-    if(!req.session.userid) {
-        res.status(400).send("The client is not logged in.");
+    // if(!req.session.userid) {
+    //     res.status(400).send("The client is not logged in.");
+    //     return;
+    // }
+    console.log(req.file, req.body);
+    var dataRows = [];
+    var nameRows = [];
+    var first = false;
+    csv.fromPath(req.file.path)
+      .on("data", function (data) {
+        console.log(data);
+        if(first){
+          first = false;
+          nameRows.push(data);
+        }else{
+          dataRows.push(data); // push each row
+        }
+      })
+      .on("end", function () {
+        fs.unlinkSync(req.file.path);   // remove temp file
+      });
+
+      try {
+        console.log('Upload CSV');
+        for(let i = 0; i < dataRows.length; i++){
+          let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity) VALUES (DEFAULT, '" + dataRows[0]+ "' ,'" + dataRows[1]+ "','" + dataRows[2]+ "', '" + dataRows[3]+ "'," + dataRows[4]+ ") RETURNING id;";
+
+          pool.query('DELETE from place where id=' + placeId, (err, val) => {
+            if (err) throw err;
+          });
+          console.log('Fetching ID');
+          pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+
+          });
+        }
+        res.sendStatus(200);
         return;
-    }
-	res.sendStatus(200);		
+      } catch (err) {
+        res.status(400).send("Cannot insert");
+        return;
+      }
+
+    res.send(req.body);
 });
 
-// TOOD 
+// TO test
 // inputs place_name, abbreviation, place_address, picture, capacity, open_time, close_time
 // return placeId
-router.post('/add-place', function(req, res) {
-    if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
-        res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
+router.post('/add-place', upload.none(), function(req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
-    if(!req.session.userid) {
-        res.status(400).send("The client is not logged in.");
-        return;
-    }
+    // if(!req.session.userid) {
+    //     res.status(400).send("The client is not logged in.");
+    //     return;
+    // }
     let place_name = req.body.place_name;
     let abbreviation = req.body.abbreviation;
     let place_address = req.body.place_address;
@@ -37,24 +85,40 @@ router.post('/add-place', function(req, res) {
     let capacity = req.body.capacity;
     let open_time = req.body.open_time;
     let close_time = req.body.close_time;
-	
+
+
     if(place_name === undefined ||
         abbreviation === undefined ||
-		place_address === undefined || 
-		picture === undefined || 
+		place_address === undefined ||
+		picture === undefined ||
 		capacity === undefined ||
-		open_time === undefined || 
+		open_time === undefined ||
 		close_time === undefined){
         res.status(400).send("Missing form data.");
         return;
     }
 	var placeId = 0;
 	// TODO create a row in sql.
-	
-	res.send(placeId);		
+  //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') RETURNING id;";
+  //let sql_str = "INSERT INTO place (id, place_name) VALUES (DEFAULT, 'asdf');";
+  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
+
+    try {
+        console.log('Adding place');
+        pool.query(sql_str, (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+            res.status(200).json(val.rows);
+        });
+        return;
+    } catch (err) {
+        console.log(err);
+       	res.status(400).send("cannot insert");
+        return;
+    }
 });
 
-//  
+//
 router.post('/remove-place', function(req, res) {
     if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
         res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
@@ -64,23 +128,38 @@ router.post('/remove-place', function(req, res) {
         res.status(400).send("The client is not logged in.");
         return;
     }
-	
+
 	let placeId = req.body.placeId;
 	if(placeID === undefined){
         res.status(400).send("Missing form data.");
         return;
 	}
 
-	// TODO remove it from sql 	
-	res.sendStatus(200);		
+	// TODO remove it from sql
+    try {
+        console.log('Remove place');
+        pool.query('DELETE from place where id=' + placeId, (err, val) => {
+            if (err) throw err;
+        });
+        console.log('Fetching ID');
+        pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+	    res.sendStatus(200);
+        });
+	return;
+    } catch (err) {
+       	res.status(400).send("Cannot insert");
+        return;
+     }
 });
 
 
 // inputs:userid, placeId, capacity
 // return: 200 or 400 with error message
-router.post('/update-capacity', function(req, res) { 
-	if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
-        res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
+router.post('/update-capacity', function(req, res) {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
     }
     if(!req.session.userid) {
@@ -90,20 +169,18 @@ router.post('/update-capacity', function(req, res) {
 
     let placeId = req.body.placeId;
     let capacity = reqbody.capacity;
-	
+
     if(placeId === undefined ||
         capacity === undefined) {
         res.status(40).send("Missing form data.");
         return;
     }
 
-	let sql_status = true;// TODO 
-	
 	if(sql_status){
-		res.sendStatus(200);		
+		res.sendStatus(200);
 	}else{
 		res.status(400).send("Failed to update.");
-	}		
+	}
 });
 
 // return: string
@@ -132,9 +209,11 @@ router.post('/get-qr-code', function(req, res) {
 	}else{
 		res.send(qrCode);
 	}
-	
+
 });
 
+
+// TODO
 // inputs: at least one from placeId, studentId, timeStamp, major
 // return: json
 router.post('/search-visit-history', function(req, res) {
@@ -143,7 +222,7 @@ router.post('/search-visit-history', function(req, res) {
         return;
     }
 
-    if(placeId === undefined && 
+    if(placeId === undefined &&
 		studentId === undefined &&
 		timeStamp === undefined &&
 		major === undefined){
@@ -152,7 +231,7 @@ router.post('/search-visit-history', function(req, res) {
     }
 	// TODO: preprocess timeStamp
 
-	
+
 	var searchResult = "TODO: Place Holder... Replaced by Json";
 	// TODO searchResult from sql
 
@@ -162,9 +241,9 @@ router.post('/search-visit-history', function(req, res) {
 	}else{
 		res.send(searchResult);
 	}
-	
+
 });
- 
+
 // return: json
 router.post('/list-all-buildings', function(req, res) {
 	if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
@@ -176,7 +255,7 @@ router.post('/list-all-buildings', function(req, res) {
         return;
     }
 
-	
+
 	var allBuildingList = "TODO: Building List... Replaced by Json";
 	// TODO searchResult from sql
 
@@ -186,7 +265,7 @@ router.post('/list-all-buildings', function(req, res) {
 	}else{
 		res.send(allBuildingList);
 	}
-	
+
 });
 
 // inputs: placeId
@@ -207,9 +286,25 @@ router.post('/list-current-students', function(req, res) {
         	return;
 	}
 
-	var studentList = "TODO: Student List... Replaced by Json";
+    var studentList = "TODO: Student List... Replaced by Json";
 	// TODO studentList from sql
 
+    try {
+        console.log('Remove place');
+        pool.query('DELETE from place where id=' + placeId, (err, val) => {
+            if (err) throw err;
+        });
+        console.log('Fetching ID');
+        pool.query('SELECT LAST_INSERT_ID();', (err, val) => {
+            if (err) throw err;
+            console.log(JSON.stringify(val.rows));
+	    res.sendStatus(200);
+        });
+	return;
+    } catch (err) {
+       	res.status(400).send("Cannot insert");
+        return;
+     }
 	if(studentList === undefined){
         res.send("No Students.");
         return;
@@ -221,7 +316,7 @@ router.post('/list-current-students', function(req, res) {
 
 // inputs: studentId
 // return: 200 or 400 with error message
-router.post('/view-profile', function(req, res) { 
+router.post('/view-profile', function(req, res) {
 	if(req.header('Content-Type') !== 'application/x-www-form-urlencoded') {
         res.status(400).send("Wrong form Content-Type. Should be application/x-www-form-urlencoded.");
         return;
@@ -232,7 +327,7 @@ router.post('/view-profile', function(req, res) {
     }
 
     let studentId = req.body.studentId;
-	
+
     if(studentId === undefined) {
         res.status(400).send("Missing studentId.");
         return;
@@ -243,7 +338,7 @@ router.post('/view-profile', function(req, res) {
 		res.send("TODO: Send back json");
 	}else{
 		res.status(400).send("Failed to load student profile.");
-	}		
+	}
 });
 
 module.exports = router;
