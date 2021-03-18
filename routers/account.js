@@ -35,24 +35,26 @@ router.post('/register', upload.none(), function(req, res) {
         return;
     }
 
+
     let fullName = req.body.fullName;
     let uscId = req.body.uscId;
     let password = req.body.password;
-    let uscEmail = req.body.uscEmail;
-    let accountType = req.body.accountType;
+    let email = req.body.email;
+    let isAdmin = req.body.isAdmin;
+    let major = req.body.major;
 
     // Firebase is going to handle profile picture upload
-    // let profilePic = req.body.profilepic;
+    // let image = req.body.image;
 
     if(fullName === undefined ||
         uscId === undefined ||
         password === undefined ||
-        uscEmail === undefined ||
-        accountType === undefined) {
+        email === undefined ||
+        isAdmin === undefined ||
+        major === undefined) {
         res.status(400).send("Missing form data.");
         return;
     }
-
     // TODO: Check if same uscId already exists in database and store it if needed
 
 
