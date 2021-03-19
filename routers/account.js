@@ -105,10 +105,10 @@ router.post('/login', upload.none(), function (req, res) {
 });
 
 router.post('/logout', upload.none(), function(req, res) {
-    if(!req.is('multipart/form-data')) {
-        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-        return;
-    }
+    // if(!req.is('multipart/form-data')) {
+    //     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+    //     return;
+    // }
 
     req.session.regenerate(function(err) {
         if(err) {
