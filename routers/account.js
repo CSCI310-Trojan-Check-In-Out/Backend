@@ -60,7 +60,16 @@ router.post('/register', upload.none(), function(req, res) {
 
     // Temporary field; this should be guaranteed to be its userid
     req.session.userid = uscId;
-    res.sendStatus(200);
+    const data = {
+        id: 1,
+        usc_id: 111,
+        username: 'Nate',
+        email: 'huan773@usc.edu',
+        picture: 'picture.com',
+        isAdmin: true,
+        major: 'computer science',
+      };
+    res.status(200).send(data);
 });
 
 router.post('/login', upload.none(), function (req, res) {
@@ -82,6 +91,7 @@ router.post('/login', upload.none(), function (req, res) {
       };
 
     if(req.session.userid) {
+        console.log(req.session.userid + " already log in");
         res.status(200).send([data]);
         return;
     }
@@ -131,10 +141,9 @@ router.post('/changePassword', upload.none(), function(req, res) {
 
     let oldPassword = req.body.oldPassword;
     let newPassword = req.body.newPassword;
-
     // TODO: Validate user credentials with session.userid and oldPassword, update to newPassword if valid
 
-    req.sendStatus(200);
+    res.sendStatus(200);
 });
 
 module.exports = router;
