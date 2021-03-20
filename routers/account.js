@@ -34,7 +34,6 @@ router.post('/register', upload.none(), async (req, res) => {
         return;
     }
 
-
     let fullName = req.body.fullName;
     let uscId = req.body.uscId;
     let password = req.body.password;
@@ -55,7 +54,7 @@ router.post('/register', upload.none(), async (req, res) => {
         return;
     }
 
-    const existingUserData = await pool.query("SELECT * FROM account where usc_id = $1;", [uscId])
+    const existingUserData = await pool.query("SELECT * FROM account where email = $1;", [email])
     if(existingUserData.rows.length !== 0) {
         res.status(500).send("The user already exists.");
         return;
@@ -67,27 +66,9 @@ router.post('/register', upload.none(), async (req, res) => {
     res.json(newUserData.rows[0])
 });
 
-router.post('/login', upload.none(), function (req, res) {
+router.post('/login', upload.none(), async (req, res) => {
     if(!req.is('multipart/form-data')) {
         res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-        return;
-    }
-
-
-     // TODO: change fake data
-     const data = {
-        id: 1,
-        usc_id: 111,
-        username: 'Nate',
-        email: 'huan773@usc.edu',
-        picture: 'picture.com',
-        isAdmin: true,
-        major: 'computer science',
-      };
-
-    if(req.session.userid) {
-        console.log(req.session.userid + " already log in");
-        res.status(200).send([data]);
         return;
     }
 
@@ -100,20 +81,21 @@ router.post('/login', upload.none(), function (req, res) {
         return;
     }
 
-    // TODO: Validate user credentials in the database
-
-    // Temporary field; this should be guaranteed to be its userid
-    req.session.userid = email;
-
-   
-    res.status(200).send([data]);
+    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
+    if(existingUserData.rows.length === 0) {
+        res.status(400).send("Username or password incorrect.");
+    }
+    else{
+        req.session.userid = email;
+        res.json(existingUserData.rows[0])
+    }
 });
 
-router.post('/logout', upload.none(), function(req, res) {
-    // if(!req.is('multipart/form-data')) {
-    //     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-    //     return;
-    // }
+router.post('/logout', upload.none(), async (req, res) => {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+        return;
+    }
 
     req.session.regenerate(function(err) {
         if(err) {
@@ -123,7 +105,7 @@ router.post('/logout', upload.none(), function(req, res) {
     });
 });
 
-router.post('/changePassword', upload.none(), function(req, res) {
+router.post('/changePassword', upload.none(), async (req, res) => {
     if(!req.is('multipart/form-data')) {
         res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
@@ -136,8 +118,19 @@ router.post('/changePassword', upload.none(), function(req, res) {
 
     let oldPassword = req.body.oldPassword;
     let newPassword = req.body.newPassword;
-    // TODO: Validate user credentials with session.userid and oldPassword, update to newPassword if valid
+    let email = req.session.userid;
 
+    if(oldPassword === undefined && newPassword === undefined) {
+        res.status(400).send("Missing form data.");
+        return;
+    }
+
+    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, oldPassword])
+    if(existingUserData.rows.length === 0) {
+        res.status(400).send("Wrong old password entered.");
+        return;
+    }
+    await pool.query("UPDATE account SET passcode = $1 WHERE id = $2", [newPassword, existingUserData.rows[0].id])
     res.sendStatus(200);
 });
 
