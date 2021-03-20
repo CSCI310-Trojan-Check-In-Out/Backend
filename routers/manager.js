@@ -1,7 +1,7 @@
-var express = require('express');
+const Router = require('express-promise-router')
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
-var router = express.Router();
+var router = new Router();
 var fs = require('fs');
 var csv = require('fast-csv');
 
@@ -42,11 +42,13 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     try {
       console.log('Upload CSV');
       for(let i = 0; i < dataRows.length; i++){
-        let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '" + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
-        console.log(sql_str);
-        pool.query(sql_str, (err, val) => {
-          if (err) throw err;
-        });
+        // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '" + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
+        // console.log(sql_str);
+        // pool.query(sql_str, (err, val) => {
+        //   if (err) throw err;
+        // });
+        pool.query("id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7);",
+            [dataRows[i][0], dataRows[i][1], dataRows[i][2], dataRows[i][3], parseInt(dataRows[i][4]),  dataRows[i][5], dataRows[i][6]]);
       }
       res.sendStatus(200);
       return;
@@ -209,33 +211,58 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
 
 
 // TODO
-// inputs: at least one from placeId, studentId, timeStamp, major
+// inputs: at least one from placeId, studentId, enter_time, leave_time, major
 // return: json
-router.post('/search-visit-history', function(req, res) {
-if(!req.session.userid) {
-  res.status(400).send("The client is not logged in.");
+router.post('/search-visit-history', upload.none(), function(req, res) {
+if(!req.is('multipart/form-data')) {
+  res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
+// if(!req.session.userid) {
+//   res.status(400).send("The client is not logged in.");
+//   return;
+// }
 
-if(placeId === undefined &&
-  studentId === undefined &&
-  timeStamp === undefined &&
-  major === undefined){
+let placeId = req.body.placeId;
+let studentId = req.body.studentId;
+let timeStamp = req.body.timeStamp;
+let major = req.body.major;
+let enter_time = req.body.enter_time;
+let leave_time = req.body.leave_time;
+
+let msg = 'Select * from account, visit_history where account.id=visit_history.account_id';
+
+  if(placeId !== undefined){
+    msg += " AND visit_history.place_id=" +  placeId //+';'
+  }
+  if (studentId !== undefined){
+    msg += " AND account_id=" +  studentId //+ ";"
+  }
+  if(major !== undefined){
+    msg += " AND major='" +  major
+  }
+  if(enter_time !== undefined){
+    msg += " AND visit_history.enter_time>='" +  enter_time  + "'"//+';'
+  }
+  if(leave_time !== undefined){
+    msg += " AND visit_history.leave_time<='" +  leave_time + "'" //+';'
+  }
+  if(placeId === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
     res.status(400).send("Missing form data.");
     return;
   }
+
   // TODO: preprocess timeStamp
-
-
-  var searchResult = "TODO: Place Holder... Replaced by Json";
-  // TODO searchResult from sql
+  msg += ";"
+  console.log(msg);
 
   try {
     console.log('Building Listings');
-    pool.query('Select * from place;', (err, val) => {
+
+    pool.query(msg, (err, val) => {
       if (err) throw err;
-      console.log(val);
-      res.send(val);
+      console.log(val.rows);
+      res.send(val.rows);
       return;
     });
   } catch (err) {
