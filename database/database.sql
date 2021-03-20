@@ -1,7 +1,7 @@
 CREATE DATABASE postgresql-animated-67845;
 
 CREATE TABLE account (
-	id SERIAL PRIMARY KEY,
+	id SERIAL UNIQUE PRIMARY KEY,
     usc_id VARCHAR(20),
 	username VARCHAR(100) UNIQUE,
 	major VARCHAR(100),
@@ -26,8 +26,8 @@ CREATE TABLE place (
 
 CREATE TABLE visit_history (
 	id SERIAL PRIMARY KEY,
-	account_id INT REFERENCES account,
-    place_id INT REFERENCES place,
+	account_id INT FOREIGN KEY REFERENCES account,
+    place_id INT FOREIGN KEY REFERENCES place,
     enter_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     leave_time TIMESTAMP NULL DEFAULT NULL
 );
