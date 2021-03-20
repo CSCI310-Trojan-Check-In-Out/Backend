@@ -28,6 +28,6 @@ CREATE TABLE visit_history (
 	id SERIAL PRIMARY KEY,
 	account_id INT REFERENCES account,
     place_id INT REFERENCES place,
-    enter_time DATE,
-    leave_time DATE
+    enter_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    leave_time TIMESTAMP NULL DEFAULT NULL
 );
