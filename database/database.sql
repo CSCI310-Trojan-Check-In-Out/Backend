@@ -1,7 +1,9 @@
-CREATE DATABASE postgresql-animated-67845;
+DROP TABLE IF EXISTS place CASCADE;
+DROP TABLE IF EXISTS visit_history CASCADE;
+DROP TABLE IF EXISTS account CASCADE;
 
 CREATE TABLE account (
-	id SERIAL UNIQUE PRIMARY KEY,
+	id SERIAL UNIQUE PRIMARY KEY CHECK (id > 0),
     usc_id VARCHAR(20),
 	username VARCHAR(100) UNIQUE,
 	major VARCHAR(100),
@@ -12,7 +14,7 @@ CREATE TABLE account (
 );
 
 CREATE TABLE place (
-	id SERIAL PRIMARY KEY,
+	id SERIAL PRIMARY KEY CHECK (id > 0),
 	place_name VARCHAR(100) UNIQUE,
     abbreviation VARCHAR(10) UNIQUE,
     place_address VARCHAR(200),
@@ -25,9 +27,9 @@ CREATE TABLE place (
 );
 
 CREATE TABLE visit_history (
-	id SERIAL PRIMARY KEY,
-	account_id INT FOREIGN KEY REFERENCES account,
-    place_id INT FOREIGN KEY REFERENCES place,
+	id SERIAL PRIMARY KEY CHECK (id > 0),
+	account_id INT REFERENCES account(id) ON DELETE CASCADE,
+    place_id INT REFERENCES place(id) ON DELETE CASCADE,
     enter_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     leave_time TIMESTAMP NULL DEFAULT NULL
 );
