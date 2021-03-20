@@ -22,8 +22,8 @@ CREATE TABLE place (
     picture VARCHAR(2083),
     capacity INT,
     current_numbers INT,
-    open_time DATE,
-    close_time DATE
+    open_time TIMESTAMP,
+    close_time TIMESTAMP
 );
 
 CREATE TABLE visit_history (
