@@ -1,5 +1,6 @@
 const multer = require('multer');
 const Router = require('express-promise-router')
+const FirebaseSync = require('firebase/firebaseSync')
 const upload = multer();
 const router = new Router();
 
@@ -55,7 +56,9 @@ router.post('/checkin', upload.none(), async (req, res) => {
     }
 
     await pool.query("INSERT INTO visit_history (account_id, place_id) " +
-        "VALUES (‘$1’, $2)", [req.session.userid, placeData.rows[0].id])
+        "VALUES (‘$1’, $2)", [req.session.userid, placeData.rows[0].id]);
+
+    FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid);
 
     res.json(placeData.rows[0]);
 });
@@ -78,8 +81,10 @@ router.post('/checkout', upload.none(), async (req, res) => {
     }
 
     // For convenience and safety, checks out all existing history
-    await pool.query("UPDATE visit_history SET leave_time = CURRENT_TIMESTAMP WHERE account_id = $1", [req.session.userid]);
-
+    const updatedHistoryData = await pool.query("UPDATE visit_history SET leave_time = CURRENT_TIMESTAMP WHERE account_id = $1 RETURNING place_id;", [req.session.userid]);
+    for(key in updatedHistoryData.rows) {
+        FirebaseSync.userCheckout(updatedHistoryData.rows[key].place_id, req.session.userid);
+    }
     res.sendStatus(200);
 });
 
@@ -94,7 +99,7 @@ router.post('/pastHistory', upload.none(), async (req, res) => {
         res.status(400).send("Missing form data.");
         return;
     }
-    let lookupTime = parseInt(lookupTimeStr)
+    let lookupTime = parseInt(lookupTimeStr);
 
     // For convenience and safety, checks out all existing history
     const pastHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1" +
