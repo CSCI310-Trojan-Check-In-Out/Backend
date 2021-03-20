@@ -56,6 +56,7 @@ router.post('/register', upload.none(), async (req, res) => {
         "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
         [uscId, fullName, major, email, password, 'NULL', parseInt(isAdmin)])
 
+    req.session.userid = newUserData.rows[0].id;
     res.json(newUserData.rows[0])
 });
 
@@ -121,6 +122,62 @@ router.post('/changePassword', upload.none(), async (req, res) => {
         return;
     }
     await pool.query("UPDATE account SET passcode = $1 WHERE id = $2", [newPassword, existingUserData.rows[0].id])
+    res.sendStatus(200);
+});
+
+router.post('/deleteAccount', upload.none(), async (req, res) => {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+        return;
+    }
+
+    if(!req.session.userid) {
+        res.status(400).send("The client is not logged in.");
+        return;
+    }
+
+    let id = req.session.userid;
+
+    const existingUserData = await pool.query("SELECT * FROM account where id = $1;", [id])
+    if(existingUserData.rows.length === 0) {
+        res.status(400).send("Critical error: user id unrecognized. Please reset your session.");
+        return;
+    }
+    await pool.query("DELETE FROM account WHERE id = $1", [existingUserData.rows[0].id]);
+
+    req.session.regenerate(function(err) {
+        if(err) {
+            console.log(err);
+        }
+        res.sendStatus(200);
+    });
+});
+
+router.post('/updateProfilePicture', upload.none(), async (req, res) => {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+        return;
+    }
+
+    if(!req.session.userid) {
+        res.status(400).send("The client is not logged in.");
+        return;
+    }
+
+    let id = req.session.userid;
+    let profilePicLink = req.body.profilePicLink;
+
+    if(!profilePicLink) {
+        res.status(400).send("Missing form data.");
+        return;
+    }
+
+    const existingUserData = await pool.query("SELECT * FROM account where id = $1;", [id])
+    if(existingUserData.rows.length === 0) {
+        res.status(400).send("Critical error: user id unrecognized. Please reset your session.");
+        return;
+    }
+    await pool.query("UPDATE account SET picture = $1 WHERE id = $2", [profilePicLink, existingUserData.rows[0].id]);
     res.sendStatus(200);
 });
 
