@@ -43,12 +43,7 @@ router.post('/register', upload.none(), async (req, res) => {
     // Firebase is going to handle profile picture upload
     // let image = req.body.image;
 
-    if(fullName === undefined ||
-        uscId === undefined ||
-        password === undefined ||
-        email === undefined ||
-        isAdmin === undefined ||
-        major === undefined) {
+    if(!fullName || !uscId || !password || !email || !isAdmin || !major) {
         res.status(400).send("Missing form data.");
         return;
     }
@@ -74,8 +69,7 @@ router.post('/login', upload.none(), async (req, res) => {
     let email = req.body.email;
     let password = req.body.password;
 
-    if(email === undefined ||
-        password === undefined) {
+    if(!email || !password) {
         res.status(400).send("Missing form data.");
         return;
     }
@@ -119,7 +113,7 @@ router.post('/changePassword', upload.none(), async (req, res) => {
     let newPassword = req.body.newPassword;
     let email = req.session.userid;
 
-    if(oldPassword === undefined && newPassword === undefined) {
+    if(!oldPassword && !newPassword) {
         res.status(400).send("Missing form data.");
         return;
     }
