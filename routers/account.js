@@ -1,29 +1,28 @@
 const express = require('express');
 const multer = require('multer');
+const Router = require('express-promise-router')
 const upload = multer();
-const router = express.Router();
+const router = new Router();
+
 // connect to database
 const {pool: pool} = require('../database/db');
 
 // example of querying database
 router.get('/test', function(req, res) {
-    try {
+
         console.log('Querying all rows from account');
-        pool.query('SELECT * FROM account;', (err, val) => {
+        pool.query("SELECT * FROM account;", (err, val) => {
             if (err) throw err;
             console.log(JSON.stringify(val.rows));
             res.status(200).json(val.rows);
-        });
-    } catch (err) {
-        console.error(err.message);
-    }
+        })
 });
 
 router.get('/', function(req, res) {
     res.send("Account endpoint page. This is used to serve all APIs related to account management (registration, log in, etc.).");
 });
 
-router.post('/register', upload.none(), function(req, res) {
+router.post('/register', upload.none(), async (req, res) => {
     if(!req.is('multipart/form-data')) {
         res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
         return;
@@ -55,21 +54,17 @@ router.post('/register', upload.none(), function(req, res) {
         res.status(400).send("Missing form data.");
         return;
     }
-    // TODO: Check if same uscId already exists in database and store it if needed
 
+    const existingUserData = await pool.query("SELECT * FROM account where usc_id = $1;", [uscId])
+    if(existingUserData.rows.length !== 0) {
+        res.status(500).send("The user already exists.");
+        return;
+    }
+    const newUserData  = await pool.query("INSERT INTO account (id, usc_id, username, major, email, passcode, picture, " +
+        "is_admin) VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+        [uscId, fullName, major, email, password, 'NULL', parseInt(isAdmin)])
 
-    // Temporary field; this should be guaranteed to be its userid
-    req.session.userid = uscId;
-    const data = {
-        id: 1,
-        usc_id: 111,
-        username: 'Nate',
-        email: 'huan773@usc.edu',
-        picture: 'picture.com',
-        isAdmin: true,
-        major: 'computer science',
-      };
-    res.status(200).send(data);
+    res.json(newUserData.rows[0])
 });
 
 router.post('/login', upload.none(), function (req, res) {
