@@ -1,4 +1,3 @@
-const express = require('express');
 const multer = require('multer');
 const Router = require('express-promise-router')
 const upload = multer();
