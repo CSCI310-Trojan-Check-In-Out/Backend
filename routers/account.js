@@ -29,7 +29,6 @@ router.post('/register', upload.none(), async (req, res) => {
 
     if(req.session.userid) {
         res.status(400).send("The client has already logged in.");
-        console.log(req.session.userid);
         return;
     }
 
@@ -53,8 +52,8 @@ router.post('/register', upload.none(), async (req, res) => {
         res.status(500).send("The user already exists.");
         return;
     }
-    const newUserData  = await pool.query("INSERT INTO account (id, usc_id, username, major, email, passcode, picture, " +
-        "is_admin) VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+    const newUserData  = await pool.query("INSERT INTO account (usc_id, username, major, email, passcode, picture, " +
+        "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
         [uscId, fullName, major, email, password, 'NULL', parseInt(isAdmin)])
 
     res.json(newUserData.rows[0])
@@ -79,7 +78,7 @@ router.post('/login', upload.none(), async (req, res) => {
         res.status(400).send("Username or password incorrect.");
     }
     else{
-        req.session.userid = email;
+        req.session.userid = existingUserData.rows[0].id;
         res.json(existingUserData.rows[0])
     }
 });
@@ -111,14 +110,14 @@ router.post('/changePassword', upload.none(), async (req, res) => {
 
     let oldPassword = req.body.oldPassword;
     let newPassword = req.body.newPassword;
-    let email = req.session.userid;
+    let id = req.session.userid;
 
     if(!oldPassword && !newPassword) {
         res.status(400).send("Missing form data.");
         return;
     }
 
-    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, oldPassword])
+    const existingUserData = await pool.query("SELECT * FROM account where id = $1 AND passcode = $2;", [email, oldPassword])
     if(existingUserData.rows.length === 0) {
         res.status(400).send("Wrong old password entered.");
         return;
