@@ -84,11 +84,6 @@ router.post('/checkout', upload.none(), async (req, res) => {
 });
 
 router.post('/pastHistory', upload.none(), async (req, res) => {
-    if(!req.is('multipart/form-data')) {
-        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-        return;
-    }
-
     if(!req.session.userid) {
         res.status(400).send("The client is not logged in.");
         return;

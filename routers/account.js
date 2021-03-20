@@ -75,20 +75,18 @@ router.post('/login', upload.none(), async (req, res) => {
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
     if(existingUserData.rows.length === 0) {
+        console.log(existingUserData.rows[0]);
         res.status(400).send("Username or password incorrect.");
+        return;
     }
     else{
+        console.log(existingUserData.rows[0]);
         req.session.userid = existingUserData.rows[0].id;
         res.json(existingUserData.rows[0])
     }
 });
 
 router.post('/logout', upload.none(), async (req, res) => {
-    if(!req.is('multipart/form-data')) {
-        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-        return;
-    }
-
     req.session.regenerate(function(err) {
         if(err) {
             console.log(err);
