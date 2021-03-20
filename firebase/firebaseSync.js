@@ -34,7 +34,3 @@ module.exports = { userCheckin, userCheckout, updateMaximumCapacity };
 /*                                    usage                                   */
 /* -------------------------------------------------------------------------- */
 
-// const {userCheckin, userCheckout, updateMaximumCapacity} = require('./firebase/firebaseSync')
-// userCheckin(buildingId, userId)
-// userCheckout(buildingId, userId)
-// updateMaximumCapacity(buildingId, maximumCapacity)

@@ -1,6 +1,6 @@
 const multer = require('multer');
 const Router = require('express-promise-router')
-const FirebaseSync = require('firebase/firebaseSync')
+const FirebaseSync = require('../firebase/firebaseSync')
 const upload = multer();
 const router = new Router();
 
