@@ -94,13 +94,13 @@ router.post('/pastHistory', upload.none(), async (req, res) => {
         return;
     }
 
-    let lookupTimeStr = req.body.lookupTime;
+    let lookupTimeStr = "9999999";//req.body.lookupTime;
     if(!lookupTimeStr) {
         res.status(400).send("Missing form data.");
         return;
     }
     let lookupTime = parseInt(lookupTimeStr);
-
+    
     // For convenience and safety, checks out all existing history
     const pastHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1" +
         " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - enter_time)) < $2;", [req.session.userid, lookupTime]);
