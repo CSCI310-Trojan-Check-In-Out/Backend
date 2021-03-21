@@ -28,13 +28,14 @@ const updateMaximumCapacity = (buildingId, maximumCapacity) => {
     ref.set(maximumCapacity);
 }
 
-module.exports = { userCheckin, userCheckout, updateMaximumCapacity };
+const deleteAll = () => {
+  const ref = realTimeDb.ref(`buildings`);
+  ref.remove();
+}
+
+module.exports = { userCheckin, userCheckout, updateMaximumCapacity, deleteAll };
 
 /* -------------------------------------------------------------------------- */
 /*                                    usage                                   */
 /* -------------------------------------------------------------------------- */
 
-// const {userCheckin, userCheckout, updateMaximumCapacity} = require('./firebase/firebaseSync')
-// userCheckin(buildingId, userId)
-// userCheckout(buildingId, userId)
-// updateMaximumCapacity(buildingId, maximumCapacity)

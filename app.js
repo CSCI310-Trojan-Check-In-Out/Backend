@@ -6,6 +6,7 @@ const http = require("http");
 const accountRouter = require("./routers/account");
 const studentRouter = require("./routers/student");
 const managerRouter = require("./routers/manager");
+const dbRouter = require("./routers/database");
 
 var useHttps = false;
 
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use("/account", accountRouter);
 app.use("/student", studentRouter);
 app.use("/manager", managerRouter);
+app.use("/database", dbRouter);
 
 // 404 Error handling route
 app.get("*", (req, res) => {

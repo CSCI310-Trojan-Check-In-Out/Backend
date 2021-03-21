@@ -21,9 +21,9 @@ CREATE TABLE place (
     qr_code_token uuid DEFAULT gen_random_uuid(),
     picture VARCHAR(2083),
     capacity INT,
-    current_numbers INT,
-    open_time TIMESTAMP,
-    close_time TIMESTAMP
+    current_numbers INT DEFAULT 0,
+    open_time TIME,
+    close_time TIME
 );
 
 CREATE TABLE visit_history (

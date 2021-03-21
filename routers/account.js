@@ -40,7 +40,7 @@ router.post('/register', upload.none(), async (req, res) => {
     let major = req.body.major;
 
     // Firebase is going to handle profile picture upload
-    // let image = req.body.image;
+    let image = req.body.image;
 
     if(!fullName || !uscId || !password || !email || !isAdmin || !major) {
         res.status(400).send("Missing form data.");
@@ -54,7 +54,7 @@ router.post('/register', upload.none(), async (req, res) => {
     }
     const newUserData  = await pool.query("INSERT INTO account (usc_id, username, major, email, passcode, picture, " +
         "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
-        [uscId, fullName, major, email, password, 'NULL', parseInt(isAdmin)])
+        [uscId, fullName, major, email, password, image, parseInt(isAdmin)])
 
     req.session.userid = newUserData.rows[0].id;
     res.json(newUserData.rows[0])

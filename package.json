@@ -14,7 +14,10 @@
         "url": "https://github.com/CSCI310-Trojan-Check-In-Out/Backend.git"
     },
     "dependencies": {
+        "@getvim/execute": "^1.0.0",
+        "@shagital/db-dumper": "^1.0.2",
         "cookie-parser": "^1.4.5",
+        "dotenv": "^8.2.0",
         "express": "^4.17.1",
         "express-promise-router": "^4.0.1",
         "express-session": "^1.17.1",
