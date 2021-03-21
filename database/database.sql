@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS account CASCADE;
 CREATE TABLE account (
 	id SERIAL UNIQUE PRIMARY KEY CHECK (id > 0),
     usc_id VARCHAR(20),
-	username VARCHAR(100) UNIQUE,
+	username VARCHAR(100),
 	major VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     passcode VARCHAR(64),
@@ -21,9 +21,9 @@ CREATE TABLE place (
     qr_code_token VARCHAR(100),
     picture VARCHAR(2083),
     capacity INT,
-    current_numbers INT,
-    open_time TIMESTAMP,
-    close_time TIMESTAMP
+    current_numbers INT DEFAULT 0,
+    open_time TIME,
+    close_time TIME
 );
 
 CREATE TABLE visit_history (
