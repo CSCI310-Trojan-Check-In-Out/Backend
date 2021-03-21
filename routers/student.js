@@ -40,7 +40,7 @@ router.post('/checkin', upload.none(), async (req, res) => {
         return;
     }
 
-    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token = $1;", [qrCodeToken]);
+    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token::text = $1;", [qrCodeToken]);
     if(placeData.rows.length === 0) {
         res.status(400).send("Invalid or expired token.");
         return;
