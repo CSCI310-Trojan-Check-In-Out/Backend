@@ -11,7 +11,12 @@ router.get('/', (req, res) => {
     res.send("Student endpoint page. This is used to serve all APIs related to student clients (check in / out, view history).");
 });
 
-router.get('/test', async (req, res) =>{
+router.get('/vhtest', async (req, res) =>{
+    const historyData = await pool.query("SELECT * FROM visit_history;");
+    res.send(historyData.rows)
+})
+
+router.get('/placetest', async (req, res) =>{
     const historyData = await pool.query("SELECT * FROM place;");
     res.send(historyData.rows)
 })
@@ -40,13 +45,13 @@ router.post('/checkin', upload.none(), async (req, res) => {
         return;
     }
 
-    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token::text = $1;", [qrCodeToken]);
+    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token = $1::uuid", [qrCodeToken]);
     if(placeData.rows.length === 0) {
         res.status(400).send("Invalid or expired token.");
         return;
     }
 
-    const existingHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1", [req.session.userid])
+    const existingHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1", [req.session.userid]);
     for (key in existingHistoryData.rows) {
         let history = existingHistoryData.rows[key];
         if(history.leave_time === null) {
@@ -56,7 +61,7 @@ router.post('/checkin', upload.none(), async (req, res) => {
     }
 
     await pool.query("INSERT INTO visit_history (account_id, place_id) " +
-        "VALUES (‘$1’, $2)", [req.session.userid, placeData.rows[0].id]);
+        "VALUES ($1, $2)", [req.session.userid, placeData.rows[0].id]);
 
     FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid);
 
