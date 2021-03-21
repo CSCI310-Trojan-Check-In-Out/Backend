@@ -7,6 +7,7 @@ var csv = require('fast-csv');
 
 // connect to database
 const {pool: pool} = require('../database/db');
+var firebase = require("../firebase/firebaseSync.js");
 
 // check testing_files/testing.csv for format
 router.get('/', function(req, res) {
@@ -26,7 +27,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
   console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
-  var first = false;
+  var first = true;
   csv.fromPath(req.file.path)
   .on("data", function (data) {
     console.log(data);
@@ -42,13 +43,19 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     try {
       console.log('Upload CSV');
       for(let i = 0; i < dataRows.length; i++){
-        // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '" + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
-        // console.log(sql_str);
-        // pool.query(sql_str, (err, val) => {
-        //   if (err) throw err;
-        // });
-        pool.query("id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7);",
-            [dataRows[i][0], dataRows[i][1], dataRows[i][2], dataRows[i][3], parseInt(dataRows[i][4]),  dataRows[i][5], dataRows[i][6]]);
+        // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
+        // + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
+        let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
+        sql_str += `on CONFLICT (place_name) DO NOTHING;`
+        console.log(sql_str);
+        pool.query(sql_str, (err, val) => {
+          if (err) throw err;
+        });
+        // pool.query("INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7);",
+        //     [dataRows[i][0], dataRows[i][1], dataRows[i][2], dataRows[i][3], parseInt(dataRows[i][4]),  dataRows[i][5], dataRows[i][6]]);
+        pool.query("Select id from place where place_name='" + dataRows[i][0] +"'", (err, val) => {
+          if (err) throw err;
+        });
       }
       res.sendStatus(200);
       return;
@@ -72,6 +79,7 @@ router.post('/add-place', upload.none(), function(req, res) {
   //     res.status(400).send("The client is not logged in.");
   //     return;
   // }
+
   let place_name = req.body.place_name;
   let abbreviation = req.body.abbreviation;
   let place_address = req.body.place_address;
@@ -92,10 +100,9 @@ router.post('/add-place', upload.none(), function(req, res) {
       return;
   }
   // TODO create a row in sql.
-  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') RETURNING id;";
+  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') ON CONFLICT (place_name) DO NOTHING RETURNING id;";
   //let sql_str = "INSERT INTO place (id, place_name) VALUES (DEFAULT, 'asdf');";
   //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
-
   try {
     console.log('Adding place');
     pool.query(sql_str, (err, val) => {
@@ -166,10 +173,19 @@ if(placeId === undefined ||
   try {
     console.log('Update place');
     console.log(capacity);
-    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ';', (err, val) => {
+    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and capacity<' + capacity + 'RETURNING place.capacity;', (err, val) => {
       if (err) throw err;
+      // TODO firebase
+      let updated_capacity = val.rows.length;
+      console.log(updated_capacity)
+      if(updated_capacity !== 0){
+        firebase.updateMaximumCapacity(placeId, capacity);
+        res.send("Capacity Updated.");
+      }else{
+        res.send("Cannot update because it is not greater than last capacity.");
+      }
     });
-    res.sendStatus(200);
+
     return;
   } catch (err) {
     res.status(400).send("Cannot update");
@@ -230,22 +246,22 @@ let major = req.body.major;
 let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 
-let msg = 'Select * from account, visit_history where account.id=visit_history.account_id';
+let msg = 'Select * from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
 
   if(placeId !== undefined){
     msg += " AND visit_history.place_id=" +  placeId //+';'
   }
   if (studentId !== undefined){
-    msg += " AND account_id=" +  studentId //+ ";"
+    msg += " AND account_id=" +  studentId//+ ";"
   }
   if(major !== undefined){
-    msg += " AND major='" +  major
+    msg += " AND major='" +  major + "'"
   }
   if(enter_time !== undefined){
     msg += " AND visit_history.enter_time>='" +  enter_time  + "'"//+';'
   }
   if(leave_time !== undefined){
-    msg += " AND visit_history.leave_time<='" +  leave_time + "'" //+';'
+    msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)" //+';'
   }
   if(placeId === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
     res.status(400).send("Missing form data.");
@@ -261,7 +277,6 @@ let msg = 'Select * from account, visit_history where account.id=visit_history.a
 
     pool.query(msg, (err, val) => {
       if (err) throw err;
-      console.log(val.rows);
       res.send(val.rows);
       return;
     });
@@ -284,7 +299,7 @@ router.post('/list-all-buildings', function(req, res) {
     console.log('Building Listings');
     pool.query('Select * from place;', (err, val) => {
       if (err) throw err;
-      res.send(val);
+      res.send(val.rows);
       return;
     });
   } catch (err) {
@@ -312,13 +327,11 @@ router.post('/list-current-students', upload.none(), function(req, res) {
     return;
   }
 
-  var studentList = "TODO: Student List... Replaced by Json";
-
   try {
     console.log('Listing all the students in this place');
-    pool.query('Select * from account, visit_history where account.id=visit_history.account_id AND leave_time IS NULL AND visit_history.place_id=' +  placeId +';', (err, val) => {
+    pool.query('Select * from account, visit_history, place where account.id=visit_history.account_id AND leave_time IS NULL AND place.id = ' +  placeId + ' AND visit_history.place_id=' +  placeId +';', (err, val) => {
       if (err) throw err;
-      res.send(val);
+      res.send(val.rows);
       return;
     });
   } catch (err) {
@@ -350,9 +363,9 @@ router.post('/view-profile', upload.none(),function(req, res) {
 
   try {
     console.log('Listing all the students in this place');
-    pool.query('Select * from account, visit_history where account.id=visit_history.account_id and account_id=' + studentId + ';', (err, val) => {
+    pool.query('Select * from account, visit_history, place where account.id=visit_history.account_id AND account_id= ' + studentId + ' AND visit_history.place_id=place.id;', (err, val) => {
       if (err) throw err;
-      res.send(val);
+      res.send(val.rows);
       return;
     });
   } catch (err) {
