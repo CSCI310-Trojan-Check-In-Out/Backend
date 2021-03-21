@@ -1,6 +1,6 @@
 const multer = require('multer');
 const Router = require('express-promise-router')
-const FirebaseSync = require('firebase/firebaseSync')
+const FirebaseSync = require('../firebase/firebaseSync')
 const upload = multer();
 const router = new Router();
 
@@ -12,14 +12,14 @@ router.get('/', (req, res) => {
 });
 
 router.get('/test', async (req, res) =>{
-    const historyData = await pool.query("SELECT * FROM visit_history;");
+    const historyData = await pool.query("SELECT * FROM place;");
     res.send(historyData.rows)
 })
 
 router.get('/insertPlaceTest', async (req, res) =>{
-    await pool.query("INSERT INTO place (place_name, abbreviation, place_address, qr_code_token, picture, capacity, " +
+    await pool.query("INSERT INTO place (place_name, abbreviation, place_address,  picture, capacity, " +
         "current_numbers, open_time, close_time) " +
-        "VALUES ('Viterbi Building', 'VB', '123', 'aaa', 'null', 10, 0, '1999-01-08 04:05:06', '1999-01-08 04:05:06');");
+        "VALUES ('Viterbi Building', 'VB', '123', 'null', 10, 0, '1999-01-08 04:05:06', '1999-01-08 04:05:06');");
     res.sendStatus(200)
 })
 
@@ -102,8 +102,13 @@ router.post('/pastHistory', upload.none(), async (req, res) => {
     let lookupTime = parseInt(lookupTimeStr);
 
     // For convenience and safety, checks out all existing history
-    const pastHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1" +
-        " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - enter_time)) < $2;", [req.session.userid, lookupTime]);
+    const pastHistoryData = await pool.query("SELECT visit_history.id, visit_history.enter_time, " +
+        "visit_history.leave_time, place.place_name, place.abbreviation, place.place_address, place.picture AS place_picture, " +
+        "place.capacity, place.current_numbers, place.open_time, place.close_time FROM visit_history " +
+        "FULL OUTER JOIN place ON place.id = visit_history.place_id " +
+        "WHERE visit_history.account_id = $1" +
+        " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - visit_history.enter_time)) < $2;",
+        [req.session.userid, lookupTime]);
 
     res.json(pastHistoryData.rows);
 });
