@@ -235,10 +235,10 @@ if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
-// if(!req.session.userid) {
-//   res.status(400).send("The client is not logged in.");
-//   return;
-// }
+if(!req.session.userid) {
+  res.status(400).send("The client is not logged in.");
+  return;
+}
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
