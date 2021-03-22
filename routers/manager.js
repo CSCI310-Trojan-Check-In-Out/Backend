@@ -57,6 +57,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
           if (err) throw err;
         });
       }
+      firebase.syncAllLocations();
       res.sendStatus(200);
       return;
     } catch (err) {
@@ -173,7 +174,7 @@ if(placeId === undefined ||
   try {
     console.log('Update place');
     console.log(capacity);
-    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and capacity<' + capacity + 'RETURNING place.capacity;', (err, val) => {
+    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and current_numbers <=' + capacity + 'RETURNING place.capacity;', (err, val) => {
       if (err) throw err;
       // TODO firebase
       let updated_capacity = val.rows.length;
