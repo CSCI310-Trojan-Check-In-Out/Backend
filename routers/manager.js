@@ -235,15 +235,16 @@ if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
-if(!req.session.userid) {
-  res.status(400).send("The client is not logged in.");
-  return;
-}
+// if(!req.session.userid) {
+//   res.status(400).send("The client is not logged in.");
+//   return;
+// }
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
 let timeStamp = req.body.timeStamp;
 let major = req.body.major;
+let username = req.body.username;
 let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 
@@ -252,13 +253,16 @@ console.log(`called : ${buildingName}  ${studentId}  ${timeStamp}  ${major}  ${e
 let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
 
   if(buildingName !== undefined){
-    msg += " AND place.place_name like '%" +  buildingName + "%'";
+    msg += " AND place.place_name ilike '%" +  buildingName + "%'";
   }
   if (studentId !== undefined){
     msg += " AND account.usc_id='" +  studentId + "'";
   }
   if(major !== undefined){
-    msg += " AND account.major like '%" +  major + "%'"
+    msg += " AND account.major ilike '%" +  major + "%'"
+  }
+  if(username !== undefined){
+    msg += " AND account.username ilike '%" +  username + "%'"
   }
   if(enter_time !== undefined){
     msg += " AND visit_history.enter_time>='" +  enter_time  + "'";
@@ -266,7 +270,8 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
   if(leave_time !== undefined){
     msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)";
   }
-  if(buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
+
+  if(username === undefined && buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
     res.status(400).send("Missing form data.");
     return;
   }
