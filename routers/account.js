@@ -110,7 +110,7 @@ router.post('/changePassword', upload.none(), async (req, res) => {
         return;
     }
 
-    const existingUserData = await pool.query("SELECT * FROM account where id = $1 AND passcode = $2;", [email, oldPassword])
+    const existingUserData = await pool.query("SELECT * FROM account where id = $1 AND passcode = $2;", [id, oldPassword])
     if(existingUserData.rows.length === 0) {
         res.status(400).send("Wrong old password entered.");
         return;
