@@ -47,7 +47,20 @@ const syncAllLocations = async () => {
     });
 }
 
-module.exports = { userCheckin, userCheckout, updateMaximumCapacity, deleteAll, syncAllLocations };
+const syncAllCheckins = async () => {
+  await pool
+    .query("select * from visit_history where leave_time is null")
+    .then(async (res) => {
+      res.rows.forEach((record) => {
+        userCheckin(record.place_id, record.account_id);
+      })
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+module.exports = { userCheckin, userCheckout, updateMaximumCapacity, deleteAll, syncAllLocations, syncAllCheckins };
 
 /* -------------------------------------------------------------------------- */
 /*                                    usage                                   */

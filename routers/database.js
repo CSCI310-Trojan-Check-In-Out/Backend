@@ -39,6 +39,8 @@ router.get("/importBackup", async (req, res) => {
     .catch((err) => {
       console.log(err);
     });
+  firebase.syncAllCheckins();
+  firebase.syncAllLocations();
   res.sendStatus(200);
 });
 
@@ -53,8 +55,8 @@ router.get("/importSample", async (req, res) => {
     .catch((err) => {
       console.log(err);
     });
+  firebase.syncAllCheckins();
   firebase.syncAllLocations();
-
   res.sendStatus(200);
 });
 
@@ -84,6 +86,7 @@ router.get("/recreateTable", async (req, res) => {
     .catch((err) => {
       console.log(err);
     });
+  firebase.deleteAll();
   res.sendStatus(200);
 });
 
