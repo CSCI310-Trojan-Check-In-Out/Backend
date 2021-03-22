@@ -32,20 +32,16 @@ router.post('/register', upload.none(), async (req, res) => {
         return;
     }
 
-    let fullName = req.body.fullName;
-    let uscId = req.body.uscId;
+    let fullName = req.body.fullName ? req.body.fullName : null;
+    let uscId = req.body.uscId ? req.body.uscId : null;
     let password = req.body.password;
     let email = req.body.email;
     let isAdmin = req.body.isAdmin;
-    let major = req.body.major;
+    let major = req.body.major ? req.body.uscId : null;
 
     // Firebase is going to handle profile picture upload
     let image = req.body.image;
 
-    if(!fullName || !uscId || !password || !email || !isAdmin || !major) {
-        res.status(400).send("Missing form data.");
-        return;
-    }
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1;", [email])
     if(existingUserData.rows.length !== 0) {
@@ -76,12 +72,10 @@ router.post('/login', upload.none(), async (req, res) => {
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
     if(existingUserData.rows.length === 0) {
-        console.log(existingUserData.rows[0]);
         res.status(400).send("Username or password incorrect.");
         return;
     }
     else{
-        console.log(existingUserData.rows[0]);
         req.session.userid = existingUserData.rows[0].id;
         res.json(existingUserData.rows[0])
     }

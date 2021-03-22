@@ -57,6 +57,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
           if (err) throw err;
         });
       }
+      firebase.syncAllLocations();
       res.sendStatus(200);
       return;
     } catch (err) {
@@ -173,7 +174,7 @@ if(placeId === undefined ||
   try {
     console.log('Update place');
     console.log(capacity);
-    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and capacity<' + capacity + 'RETURNING place.capacity;', (err, val) => {
+    pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and current_numbers <=' + capacity + 'RETURNING place.capacity;', (err, val) => {
       if (err) throw err;
       // TODO firebase
       let updated_capacity = val.rows.length;
@@ -239,31 +240,33 @@ if(!req.session.userid) {
   return;
 }
 
-let placeId = req.body.placeId;
+let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
 let timeStamp = req.body.timeStamp;
 let major = req.body.major;
 let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 
-let msg = 'Select * from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
+console.log(`called : ${buildingName}  ${studentId}  ${timeStamp}  ${major}  ${enter_time}  ${leave_time}`);
 
-  if(placeId !== undefined){
-    msg += " AND visit_history.place_id=" +  placeId //+';'
+let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
+
+  if(buildingName !== undefined){
+    msg += " AND place.place_name like '%" +  buildingName + "%'";
   }
   if (studentId !== undefined){
-    msg += " AND account_id=" +  studentId//+ ";"
+    msg += " AND account.usc_id='" +  studentId + "'";
   }
   if(major !== undefined){
-    msg += " AND major='" +  major + "'"
+    msg += " AND account.major like '%" +  major + "%'"
   }
   if(enter_time !== undefined){
-    msg += " AND visit_history.enter_time>='" +  enter_time  + "'"//+';'
+    msg += " AND visit_history.enter_time>='" +  enter_time  + "'";
   }
   if(leave_time !== undefined){
-    msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)" //+';'
+    msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)";
   }
-  if(placeId === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
+  if(buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
     res.status(400).send("Missing form data.");
     return;
   }
@@ -277,6 +280,7 @@ let msg = 'Select * from account, visit_history, place where account.id=visit_hi
 
     pool.query(msg, (err, val) => {
       if (err) throw err;
+      console.log(val.rows);
       res.send(val.rows);
       return;
     });
