@@ -20,10 +20,10 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //     res.status(400).send("The client is not logged in.");
-  //     return;
-  // }
+  if(!req.session.userid) {
+      res.status(400).send("The client is not logged in.");
+      return;
+  }
   console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
@@ -75,10 +75,10 @@ router.post('/add-place', upload.none(), function(req, res) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //     res.status(400).send("The client is not logged in.");
-  //     return;
-  // }
+  if(!req.session.userid) {
+      res.status(400).send("The client is not logged in.");
+      return;
+  }
 
   let place_name = req.body.place_name;
   let abbreviation = req.body.abbreviation;
@@ -124,10 +124,10 @@ router.post('/remove-place',  upload.none(), function(req, res) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //     res.status(400).send("The client is not logged in.");
-  //     return;
-  // }
+  if(!req.session.userid) {
+      res.status(400).send("The client is not logged in.");
+      return;
+  }
 
   let placeId = req.body.placeId;
   if(placeId === undefined){
@@ -156,10 +156,10 @@ if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
-// if(!req.session.userid) {
-//   res.status(400).send("The client is not logged in.");
-//   return;
-// }
+if(!req.session.userid) {
+  res.status(400).send("The client is not logged in.");
+  return;
+}
 
 let placeId = req.body.placeId;
 let capacity = req.body.capacity;
@@ -199,10 +199,10 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
 
   let placeId = req.body.placeId;
   if(placeId === undefined) {
@@ -234,10 +234,10 @@ if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
 }
-// if(!req.session.userid) {
-//   res.status(400).send("The client is not logged in.");
-//   return;
-// }
+if(!req.session.userid) {
+  res.status(400).send("The client is not logged in.");
+  return;
+}
 
 let placeId = req.body.placeId;
 let studentId = req.body.studentId;
@@ -290,10 +290,10 @@ let msg = 'Select * from account, visit_history, place where account.id=visit_hi
 
 // return: json
 router.post('/list-all-buildings', function(req, res) {
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
 
   try {
     console.log('Building Listings');
@@ -316,10 +316,10 @@ router.post('/list-current-students', upload.none(), function(req, res) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
 
   let placeId = req.body.placeId;
   if(placeId === undefined){
@@ -349,10 +349,10 @@ router.post('/view-profile', upload.none(),function(req, res) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
 
   let studentId = req.body.studentId;
 
