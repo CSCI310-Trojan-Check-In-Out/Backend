@@ -43,11 +43,17 @@ VALUES (2, 1, '01/01/2021 10:00', '01/01/2021 12:00');
 INSERT INTO visit_history (account_id, place_id, enter_time, leave_time)
 VALUES (2, 1, '01/02/2021 10:00', '01/02/2021 12:00');
 
-INSERT INTO visit_history (account_id, place_id, enter_time)
-VALUES (1, 3, '03/20/2021 10:00');
-
 INSERT INTO visit_history (account_id, place_id, enter_time, leave_time)
 VALUES (3, 5, '02/01/2021 10:00', '02/01/2021 12:00');
 
 INSERT INTO visit_history (account_id, place_id, enter_time, leave_time)
 VALUES (3, 4, '02/02/2021 10:00', '02/02/2021 11:00');
+
+INSERT INTO visit_history (account_id, place_id, enter_time)
+VALUES (1, 3, '03/20/2021 10:00');
+
+INSERT INTO visit_history (account_id, place_id, enter_time)
+VALUES (2, 1, '03/22/2021 10:00');
+
+INSERT INTO visit_history (account_id, place_id, enter_time)
+VALUES (3, 2, '03/22/2021 16:00');
