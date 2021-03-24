@@ -27,10 +27,10 @@ router.post('/register', upload.none(), async (req, res) => {
         return;
     }
 
-    if(req.session.userid) {
-        res.status(400).send("The client has already logged in.");
-        return;
-    }
+    // if(req.session.userid) {
+    //     res.status(400).send("The client has already logged in.");
+    //     return;
+    // }
 
     let fullName = req.body.fullName ? req.body.fullName : null;
     let uscId = req.body.uscId ? req.body.uscId : null;

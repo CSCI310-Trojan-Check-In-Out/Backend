@@ -16,12 +16,12 @@ const realTimeDb = admin.database();
 
 const userCheckin = (buildingId, userId) => {
   const ref = realTimeDb.ref(`buildings/${buildingId}/checkin`);
-  ref.child(userId).set("true");
+  ref.child("user"+userId).set("true");
 };
 
 const userCheckout = (buildingId, userId) => {
   const ref = realTimeDb.ref(`buildings/${buildingId}/checkin`);
-  ref.child(userId).remove();
+  ref.child("user"+userId).remove();
 };
 
 const updateMaximumCapacity = (buildingId, maximumCapacity) => {
