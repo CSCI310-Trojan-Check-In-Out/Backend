@@ -37,7 +37,7 @@ router.post('/register', upload.none(), async (req, res) => {
     let password = req.body.password;
     let email = req.body.email;
     let isAdmin = req.body.isAdmin;
-    let major = req.body.major ? req.body.uscId : null;
+    let major = req.body.major ? req.body.major : null;
 
     // Firebase is going to handle profile picture upload
     let image = req.body.image;
