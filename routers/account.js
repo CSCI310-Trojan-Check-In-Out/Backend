@@ -27,17 +27,17 @@ router.post('/register', upload.none(), async (req, res) => {
         return;
     }
 
-    if(req.session.userid) {
-        res.status(400).send("The client has already logged in.");
-        return;
-    }
+    // if(req.session.userid) {
+    //     res.status(400).send("The client has already logged in.");
+    //     return;
+    // }
 
     let fullName = req.body.fullName ? req.body.fullName : null;
     let uscId = req.body.uscId ? req.body.uscId : null;
     let password = req.body.password;
     let email = req.body.email;
     let isAdmin = req.body.isAdmin;
-    let major = req.body.major ? req.body.uscId : null;
+    let major = req.body.major ? req.body.major : null;
 
     // Firebase is going to handle profile picture upload
     let image = req.body.image;
