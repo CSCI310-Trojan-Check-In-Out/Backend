@@ -45,23 +45,22 @@ router.post('/checkin', upload.none(), async (req, res) => {
         return;
     }
 
+    const existingHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1", [req.session.userid]);
+    for (key in existingHistoryData.rows) {
+        let history = existingHistoryData.rows[key];
+        if(history.leave_time === null) {
+            res.status(400).send("The client has unfinished check-in history. Please check out first.");
+            return;
+        }
+    }
+
     const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token = $1::uuid AND current_numbers < capacity", [qrCodeToken]);
     if(placeData.rows.length === 0) {
         res.status(400).send("Invalid token or capacity full.");
         return;
     }
 
-    const existingHistoryData = await pool.query("SELECT * FROM visit_history WHERE account_id = $1", [req.session.userid]);
-    for (key in existingHistoryData.rows) {
-        let history = existingHistoryData.rows[key];
-        if(history.leave_time === null) {
-            res.status(400).send("The client has unfinished check-in histories.");
-            return;
-        }
-    }
-
     await pool.query("UPDATE place SET current_numbers = current_numbers + 1 WHERE id = $1", [placeData.rows[0].id]);
-
     await pool.query("INSERT INTO visit_history (account_id, place_id) VALUES ($1, $2)",
         [req.session.userid, placeData.rows[0].id]);
 
