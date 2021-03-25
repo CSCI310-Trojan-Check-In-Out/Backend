@@ -45,9 +45,9 @@ router.post('/checkin', upload.none(), async (req, res) => {
         return;
     }
 
-    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token = $1::uuid", [qrCodeToken]);
+    const placeData = await pool.query("SELECT * FROM place WHERE qr_code_token = $1::uuid AND current_numbers < capacity", [qrCodeToken]);
     if(placeData.rows.length === 0) {
-        res.status(400).send("Invalid or expired token.");
+        res.status(400).send("Invalid token or capacity full.");
         return;
     }
 
@@ -60,8 +60,10 @@ router.post('/checkin', upload.none(), async (req, res) => {
         }
     }
 
-    await pool.query("INSERT INTO visit_history (account_id, place_id) " +
-        "VALUES ($1, $2)", [req.session.userid, placeData.rows[0].id]);
+    await pool.query("UPDATE place SET current_numbers = current_numbers + 1 WHERE id = $1", [placeData.rows[0].id]);
+
+    await pool.query("INSERT INTO visit_history (account_id, place_id) VALUES ($1, $2)",
+        [req.session.userid, placeData.rows[0].id]);
 
     FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid);
     console.log(placeData.rows[0]);
@@ -85,11 +87,21 @@ router.post('/checkout', upload.none(), async (req, res) => {
         return;
     }
 
-    // For convenience and safety, checks out all existing history
-    const updatedHistoryData = await pool.query("UPDATE visit_history SET leave_time = CURRENT_TIMESTAMP WHERE account_id = $1 RETURNING place_id;", [req.session.userid]);
+    // Check out history if the place matches the qrCode
+    const updatedHistoryData = await pool.query("UPDATE visit_history SET leave_time = CURRENT_TIMESTAMP " +
+        "FROM (SELECT id FROM place WHERE qr_code_token = $1) AS subquery WHERE visit_history.account_id = $2 AND " +
+        "visit_history.place_id = subquery.id AND visit_history.leave_time IS NULL RETURNING visit_history.place_id;", [qrCodeToken, req.session.userid]);
+
+    if(updatedHistoryData.rows.length === 0) {
+        res.status(400).send("No history found.");
+        return;
+    }
+
     for(key in updatedHistoryData.rows) {
         FirebaseSync.userCheckout(updatedHistoryData.rows[key].place_id, req.session.userid);
+        await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
     }
+
     res.sendStatus(200);
 });
 
