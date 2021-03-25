@@ -24,7 +24,9 @@ CREATE TABLE place (
     capacity INT,
     current_numbers INT DEFAULT 0,
     open_time TIME,
-    close_time TIME
+    close_time TIME,
+    constraint current_numbers_nonnegative check (current_numbers >= 0),
+    constraint current_numbers_lt_capacity check (current_numbers <= capacity)
 );
 
 CREATE TABLE visit_history (
