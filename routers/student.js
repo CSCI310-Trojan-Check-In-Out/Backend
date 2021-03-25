@@ -28,6 +28,18 @@ router.get('/insertPlaceTest', async (req, res) =>{
     res.sendStatus(200)
 })
 
+router.get('/unfinishedHistory', async(req, res) => {
+    if(!req.session.userid) {
+        res.status(400).send("The client is not logged in.");
+        return;
+    }
+
+    const existingHistoryData = await pool.query("SELECT * FROM visit_history LEFT JOIN place ON " +
+        "visit_history.place_id = place.id WHERE visit_history.account_id = $1 AND visit_history.leave_time IS NULL;", [req.session.userid]);
+
+    res.json(existingHistoryData.rows);
+});
+
 router.post('/checkin', upload.none(), async (req, res) => {
     if(!req.is('multipart/form-data')) {
         res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
