@@ -13,14 +13,14 @@ VALUES ('Arron', 'arron@usc.edu', '1234567', './picture/arron.jpg', 1);
 INSERT INTO account (username, email, passcode, picture, is_admin)
 VALUES ('Mark', 'mark@usc.edu', '1234567', './picture/mark.jpg', 1);
 
-INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time)
-VALUES ('Salvatori Computer Science Center', 'SAL', '941 Bloom Walk, Los Angeles', './picture/sal.jpg', 100, '08:00', '17:00');
+INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time)
+VALUES ('Salvatori Computer Science Center', 'SAL', '941 Bloom Walk, Los Angeles', './picture/sal.jpg', 100, 1, '08:00', '17:00');
 
-INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time)
-VALUES ('Ronald Tutor Campus Center', 'TCC', '3607 Trousdale Pkwy, Los Angeles', './picture/tcc.jpg', 50, '08:00', '17:00');
+INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time)
+VALUES ('Ronald Tutor Campus Center', 'TCC', '3607 Trousdale Pkwy, Los Angeles', './picture/tcc.jpg', 50, 1, '08:00', '17:00');
 
-INSERT INTO place (place_name, place_address, picture, capacity, open_time, close_time)
-VALUES ('USC Village Fitness Center', '929-959 W Jefferson Blvd', './picture/gym.jpg', 50, '05:00', '23:00');
+INSERT INTO place (place_name, place_address, picture, capacity, current_numbers, open_time, close_time)
+VALUES ('USC Village Fitness Center', '929-959 W Jefferson Blvd', './picture/gym.jpg', 50, 1, '05:00', '23:00');
 
 INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time)
 VALUES ('Taper Hall', 'THH', '3501 Trousdale Pkwy', './picture/thh.jpg', 200, '08:00', '20:00');
