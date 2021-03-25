@@ -21,8 +21,8 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     return;
   }
   if(!req.session.userid) {
-      res.status(400).send("The client is not logged in.");
-      return;
+    res.status(400).send("The client is not logged in.");
+    return;
   }
   console.log(req.file, req.body);
   var dataRows = [];
@@ -42,29 +42,31 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
   fs.unlinkSync(req.file.path);   // remove temp file
     try {
       console.log('Upload CSV');
+      var promises = []
+
       for(let i = 0; i < dataRows.length; i++){
         // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
         // + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
         let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
         sql_str += `on CONFLICT (place_name) DO NOTHING;`
         console.log(sql_str);
-        pool.query(sql_str, (err, val) => {
-          if (err) throw err;
-        });
-        // pool.query("INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, $1, $2, $3, $4, $5, $6, $7);",
-        //     [dataRows[i][0], dataRows[i][1], dataRows[i][2], dataRows[i][3], parseInt(dataRows[i][4]),  dataRows[i][5], dataRows[i][6]]);
-        pool.query("Select id from place where place_name='" + dataRows[i][0] +"'", (err, val) => {
-          if (err) throw err;
-        });
+        // pool.query(sql_str, (err, val) => {
+        //   if (err) throw err;
+        // });
+        const promise = pool.query(sql_str);
+        promises.push(promise);
       }
-      firebase.syncAllLocations();
-      res.sendStatus(200);
-      return;
-    } catch (err) {
+      Promise.all(promises).then( () =>{
+        firebase.syncAllLocations();
+      }
+    );
+     } catch (err) {
       console.log(err);
       res.status(400).send("Cannot insert");
       return;
     }
+    res.sendStatus(200);
+    return;
   });
 
 });
