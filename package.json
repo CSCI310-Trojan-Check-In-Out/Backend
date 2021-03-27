@@ -8,6 +8,10 @@
         "dev": "nodemon app.js",
         "test": "jest"
     },
+    "jest": {
+        "verbose": true,
+        "testEnvironment": "node"
+    },
     "author": "",
     "license": "ISC",
     "repository": {

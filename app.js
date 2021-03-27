@@ -6,8 +6,6 @@ const studentRouter = require("./routers/student");
 const managerRouter = require("./routers/manager");
 const dbRouter = require("./routers/database");
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 var app = express();
 
 app.use(cookieParser());
