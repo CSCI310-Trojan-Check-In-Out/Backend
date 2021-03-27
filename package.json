@@ -1,11 +1,12 @@
 {
     "name": "trojan-check-in-out",
-    "version": "0.0.1",
+    "version": "0.2.0",
     "description": "Check in / check out Android application for Trojans.",
     "main": "app.js",
     "scripts": {
         "start": "node server.js",
-        "dev": "nodemon app.js"
+        "dev": "nodemon app.js",
+        "test": "jest"
     },
     "author": "",
     "license": "ISC",

@@ -6,10 +6,16 @@ const studentRouter = require("./routers/student");
 const managerRouter = require("./routers/manager");
 const dbRouter = require("./routers/database");
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 var app = express();
 
 app.use(cookieParser());
-app.use(session({ secret: "secret" }));
+app.use(session({
+  secret: "secret",
+  resave: true,
+  saveUninitialized: true
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
