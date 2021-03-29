@@ -1,9 +1,11 @@
 const request = require("supertest");
 const http = require("http");
+const crypto = require("crypto");
 const app = require("../app");
 
 const manager_post_endpoints = ['/process-csv', '/add-place', '/remove-place',
   '/update-capacity', '/get-qr-code', '/search-visit-history', '/list-all-buildings', '/list-current-students', '/view-profile'];
+
 describe("Generic web server tests", () => {
     let server;
     beforeAll((done) => {
@@ -66,7 +68,7 @@ describe("Account route tests", () => {
 
         const response = await request(server).post("/account/login")
             .field("email", "ttrojan@usc.edu")
-            .field("password", "1234567");
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
         expect(response.statusCode).toBe(200);
         expect(response.type).toBe("application/json");
     });
@@ -74,9 +76,75 @@ describe("Account route tests", () => {
     test("Login failure test", async () => {
         const response = await request(server).post("/account/login")
             .field("email", "ttrojan@usc.edu")
-            .field("password", "000000");
+            .field("password", crypto.createHash('md5').update('0').digest('hex'));
         expect(response.statusCode).toBe(200);
         expect(response.text).toBe("Username or password incorrect.");
+    });
+
+    test("Login / Logout test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/account/logout")
+            .field("email", "ttrojan@usc.edu");
+        expect(response2.statusCode).toBe(200);
+        expect(response2.text).toBe("OK");
+    });
+
+    test("Unauthorized session test", async () => {
+        const userEndpoints = ['/logout', '/changePassword', '/deleteAccount', '/updateProfilePicture'];
+        for(key in userEndpoints) {
+            const response = await request(server).post("/account" + userEndpoints[key])
+                .field("email", "ttrojan@usc.edu");
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("The client is not logged in.");
+        }
+    });
+});
+
+describe("Student route tests", () => {
+    let server;
+    beforeAll((done) => {
+        server = http.createServer(app);
+        server.listen(done);
+    });
+
+    afterAll((done) => {
+        server.close(done);
+    });
+
+    test("Check in / Check out test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/student/checkin")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+        expect(response2.statusCode).toBe(200);
+        expect(response2.type).toBe("application/json");
+
+        const response3 = await agent.post("/student/checkout")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+        expect(response3.statusCode).toBe(200);
+        expect(response3.text).toBe("OK");
+    });
+
+    test("Unauthorized session test", async () => {
+        const userEndpoints = ['/logout', '/changePassword', '/deleteAccount', '/updateProfilePicture'];
+        for(key in userEndpoints) {
+            const response = await request(server).post("/account" + userEndpoints[key])
+                .field("email", "ttrojan@usc.edu")
+                .field("password", "000000");
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("The client is not logged in.");
+        }
     });
 });
 

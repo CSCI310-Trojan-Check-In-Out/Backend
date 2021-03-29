@@ -77,7 +77,6 @@ router.post('/checkin', upload.none(), async (req, res) => {
         [req.session.userid, placeData.rows[0].id]);
 
     FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid);
-    console.log(placeData.rows[0]);
     res.json(placeData.rows[0]);
 });
 
