@@ -72,7 +72,7 @@ router.post('/login', upload.none(), async (req, res) => {
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
     if(existingUserData.rows.length === 0) {
-        res.status(400).send("Username or password incorrect.");
+        res.status(200).send("Username or password incorrect.");
         return;
     }
     else{
@@ -82,6 +82,11 @@ router.post('/login', upload.none(), async (req, res) => {
 });
 
 router.post('/logout', upload.none(), async (req, res) => {
+    if(!req.session.userid) {
+        res.status(400).send("The client is not logged in.");
+        return;
+    }
+
     req.session.regenerate(function(err) {
         if(err) {
             console.log(err);
