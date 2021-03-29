@@ -136,15 +136,53 @@ describe("Student route tests", () => {
         expect(response3.text).toBe("OK");
     });
 
-    test("Unauthorized session test", async () => {
-        const userEndpoints = ['/logout', '/changePassword', '/deleteAccount', '/updateProfilePicture'];
-        for(key in userEndpoints) {
-            const response = await request(server).post("/account" + userEndpoints[key])
-                .field("email", "ttrojan@usc.edu")
-                .field("password", "000000");
-            expect(response.statusCode).toBe(400);
-            expect(response.text).toBe("The client is not logged in.");
-        }
+    test("Invalid QR Code test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/student/checkin")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e39");
+        expect(response2.statusCode).toBe(400);
+        expect(response2.text).toBe("Invalid token or capacity full.");
+    });
+
+    test("Existing visit history test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/student/checkin")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+        expect(response2.statusCode).toBe(200);
+
+        const response3 = await agent.post("/student/checkin")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+        expect(response3.statusCode).toBe(400);
+        expect(response3.text).toBe("The client has unfinished check-in history. Please check out first.");
+
+        await agent.post("/student/checkout")
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+    });
+
+    test("Past history test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/student/pastHistory")
+            .field("lookupTimeStr", "360000");
+        expect(response2.statusCode).toBe(200);
+        expect(response2.type).toBe("application/json");
     });
 });
 
