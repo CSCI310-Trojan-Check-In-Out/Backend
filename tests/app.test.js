@@ -24,7 +24,7 @@ describe("Generic web server tests", () => {
     });
 
     test("404 test", async () => {
-        const response = await request(server).get("/");
+        const response = await request(server).get("/notfound");
         expect(response.statusCode).toBe(404);
         expect(response.text).toBe("Resource not found");
     });
@@ -91,6 +91,56 @@ describe("Account route tests", () => {
 
         const response2 = await agent.post("/account/logout")
             .field("email", "ttrojan@usc.edu");
+        expect(response2.statusCode).toBe(200);
+        expect(response2.text).toBe("OK");
+    });
+
+    test("Change password test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'));
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/account/changePassword")
+            .field("oldPassword", crypto.createHash('md5').update('1').digest('hex'))
+            .field("newPassword", crypto.createHash('md5').update('2').digest('hex'));
+        expect(response2.statusCode).toBe(200);
+        expect(response2.text).toBe("OK");
+
+        const response3 = await agent.post("/account/logout")
+            .field("email", "ttrojan@usc.edu");
+        expect(response3.statusCode).toBe(200);
+        expect(response3.text).toBe("OK");
+
+        const response4 = await agent.post("/account/login")
+            .field("email", "ttrojan@usc.edu")
+            .field("password", crypto.createHash('md5').update('2').digest('hex'));
+        expect(response4.statusCode).toBe(200);
+        expect(response4.type).toBe("application/json");
+
+        await agent.post("/account/changePassword")
+            .field("oldPassword", crypto.createHash('md5').update('2').digest('hex'))
+            .field("newPassword", crypto.createHash('md5').update('1').digest('hex'));
+        await agent.post("/account/logout")
+            .field("email", "ttrojan@usc.edu");
+    });
+
+    test("Register / deleteAccount test", async () => {
+        let agent = request.agent(server);
+        const response = await agent.post("/account/register")
+            .field("fullName", "John Doe")
+            .field("uscId", "1234567")
+            .field("password", crypto.createHash('md5').update('1').digest('hex'))
+            .field("email", "jd@usc.edu")
+            .field("isAdmin", "0")
+            .field("major", "Computer Science");
+        expect(response.statusCode).toBe(200);
+        expect(response.type).toBe("application/json");
+
+        const response2 = await agent.post("/account/deleteAccount")
+            .field("email", "jd@usc.edu");
         expect(response2.statusCode).toBe(200);
         expect(response2.text).toBe("OK");
     });
