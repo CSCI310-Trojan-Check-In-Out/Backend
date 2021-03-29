@@ -77,7 +77,7 @@ router.post('/login', upload.none(), async (req, res) => {
     }
     else{
         req.session.userid = existingUserData.rows[0].id;
-        res.json(existingUserData.rows[0])
+        res.status(200).json(existingUserData.rows[0])
     }
 });
 
