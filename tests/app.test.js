@@ -188,9 +188,11 @@ describe("Student route tests", () => {
 
 describe("Manager route endpoint tests", () => {
     let server;
+    let agent;
     beforeAll((done) => {
         server = http.createServer(app);
         server.listen(done);
+        agent = request.agent(server);
     });
 
     afterAll((done) => {
@@ -226,35 +228,96 @@ describe("Manager route endpoint tests", () => {
         expect(response.text).toBe("The client is not logged in.");
       }
     });
-});
 
-
-describe("POST /manager/list-all-buildings test", () => {
-    let server;
-    beforeAll((done) => {
-        server = http.createServer(app);
-        server.listen(done);
-    });
-
-    afterAll((done) => {
-        server.close(done);
-    });
-
-    test("List all buildings test", async () => {
-      let agent = request.agent(server);
+    test("view profile fail", async () => {
       var response = await agent.post("/account/login")
           .field("email", "arron@usc.edu")
           .field("password", crypto.createHash('md5').update('1').digest('hex'))
       expect(response.statusCode).toBe(200);
       expect(response.type).toBe("application/json");
 
-      response = await agent.post('/manager/list-all-buildings').field("dummy", "dummy");
-      expect(response.statusCode).toBe(200);
-      expect(response.type).toBe("application/json");;
+      response = await agent.post('/manager/view-profile').field("dummy", "dummy");
+      expect(response.statusCode).toBe(400);
+      expect(response.text).toBe("Missing studentId.");
     });
 
-});
+    test("view profile success", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
 
+      response = await agent.post('/manager/view-profile')
+                            .field("studentId", "1");
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+    });
+
+    test("search visit history fail", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+
+      response = await agent.post('/manager/search-visit-history')
+                            .field("dummy", "dummy")
+      expect(response.statusCode).toBe(400);
+      expect(response.text).toBe("Missing form data.");
+    });
+
+    test("search visit history succeed", async () => {
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/search-visit-history')
+                            .field("username", "tom");
+
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+    });
+
+    test("get qr code succeed", async () => {
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/get-qr-code')
+                            .field("placeId", "1");
+
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+    });
+
+    test("list current students succeed", async () => {
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/list-current-students')
+                            .field("placeId", "1");
+
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+    });
+
+    test("List all buildings succeed", async() => {
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/list-all-buildings')
+
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+    });
+});
 
 describe("POST /manager/process-csv test", () => {
     let server;
@@ -269,8 +332,22 @@ describe("POST /manager/process-csv test", () => {
     afterAll((done) => {
         server.close(done);
     });
+    test("Upload wrong file fail", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
 
-    test("Upload file test", async () => {
+      const filePath = appRoot + `/testing_files/wrong_file.png`;
+      // Make sure you return the request to async execute the tests
+      response = await agent.post('/manager/process-csv').set({connection: 'keep-alive'})
+            .attach('place-csv', filePath);
+      expect(response.statusCode).toBe(422);
+    });
+
+
+    test("Upload file succeed", async () => {
       var response = await agent.post("/account/login")
           .field("email", "arron@usc.edu")
           .field("password", crypto.createHash('md5').update('1').digest('hex'))
@@ -302,3 +379,164 @@ describe("POST /manager/process-csv test", () => {
       fail();
     });
 });
+
+describe("POST /manager/update-capacity test", () => {
+    let server;
+    let agent;
+    beforeAll((done) => {
+        server = http.createServer(app);
+        server.listen(done);
+        agent = request.agent(server);
+    });
+
+    afterAll((done) => {
+        server.close(done);
+    });
+    test("Invalid fields", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+
+      response = await agent.post('/manager/update-capacity')
+                            .field("placeId", "1");
+      expect(response.statusCode).toBe(404);
+      expect(response.text).toBe("Missing form data.");
+
+      response = await agent.post('/manager/update-capacity')
+                            .field("capacity", "1");
+      expect(response.statusCode).toBe(404);
+      expect(response.text).toBe("Missing form data.");
+    });
+
+
+    test("Too small capacity", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+
+      response = await agent.post('/manager/update-capacity')
+                            .field("placeId", "1")
+                            .field("capacity", "-1");
+      expect(response.text).toBe("Cannot update because it is not greater than current number.");
+
+    });
+
+    test("Successful Update", async () => {
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/update-capacity')
+                            .field("placeId", "1")
+                            .field("capacity", "312");
+      expect(response.statusCode).toBe(200);
+      expect(response.text).toBe("Capacity Updated.");
+    });
+});
+//
+// describe("Manager route other tests", () => {
+//     let server;
+//     let agent;
+//     beforeAll((done) => {
+//         server = http.createServer(app);
+//         server.listen(done);
+//         agent = request.agent(server);
+//     });
+//
+//     afterAll((done) => {
+//         server.close(done);
+//     });
+//     test("view profile fail", async () => {
+//       var response = await agent.post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'))
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//
+//       response = await agent.post('/manager/view-profile').field("dummy", "dummy");
+//       expect(response.statusCode).toBe(400);
+//       expect(response.text).toBe("Missing studentId.");
+//     });
+//
+//     test("view profile success", async () => {
+//       var response = await agent.post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'))
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//
+//       response = await agent.post('/manager/view-profile')
+//                             .field("studentId", "1");
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//     });
+//
+//     test("search visit history fail", async () => {
+//       var response = await agent.post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'))
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//
+//       response = await agent.post('/manager/search-visit-history')
+//                             .field("dummy", "dummy")
+//       expect(response.statusCode).toBe(400);
+//       expect(response.text).toBe("Missing form data.");
+//     });
+//
+//     test("search visit history succeed", async () => {
+//       var response = await request(server).post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'));
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//       response = await agent.post('/manager/search-visit-history')
+//                             .field("username", "tom");
+//
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//     });
+//
+//     test("get qr code succeed", async () => {
+//       var response = await request(server).post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'));
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//       response = await agent.post('/manager/get-qr-code')
+//                             .field("placeId", "1");
+//
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//     });
+//
+//     test("list current students succeed", async () => {
+//       var response = await request(server).post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'));
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//       response = await agent.post('/manager/list-current-students')
+//                             .field("placeId", "1");
+//
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//     });
+//
+//     test("List all buildings succeed", async() => {
+//       var response = await request(server).post("/account/login")
+//           .field("email", "arron@usc.edu")
+//           .field("password", crypto.createHash('md5').update('1').digest('hex'));
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//       response = await agent.post('/manager/list-all-buildings')
+//
+//       expect(response.statusCode).toBe(200);
+//       expect(response.type).toBe("application/json");
+//     });
+// });

@@ -29,6 +29,9 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
   var nameRows = [];
   var first = true;
   csv.fromPath(req.file.path)
+  .on('error', error => {
+    res.status(422).send("The file you send is not processible.")
+  })
   .on("data", function (data) {
     // console.log(data);
     if(first){
@@ -57,16 +60,16 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
         promises.push(promise);
       }
       Promise.all(promises).then( () =>{
+        res.sendStatus(200);
         firebase.syncAllLocations();
-      }
-    );
+      });
      } catch (err) {
       // console.log(err);
       res.status(400).send("Cannot insert");
       return;
     }
-    res.sendStatus(200);
-    return;
+    // res.sendStatus(200);
+    // return;
   });
 
 });
@@ -175,20 +178,17 @@ if(placeId === undefined ||
 
   try {
     console.log('Update place');
-    console.log(capacity);
     pool.query('UPDATE place SET capacity=' + capacity + 'where id=' + placeId + ' and current_numbers <=' + capacity + 'RETURNING place.capacity;', (err, val) => {
       if (err) throw err;
       // TODO firebase
       let updated_capacity = val.rows.length;
-      console.log(updated_capacity)
       if(updated_capacity !== 0){
         firebase.updateMaximumCapacity(placeId, capacity);
         res.send("Capacity Updated.");
       }else{
-        res.send("Cannot update because it is not greater than last capacity.");
+        res.send("Cannot update because it is not greater than current number.");
       }
     });
-
     return;
   } catch (err) {
     res.status(400).send("Cannot update");
@@ -217,7 +217,6 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
     console.log('Get QR Code');
     pool.query('Select qr_code_token from place where id=' + placeId + ';', (err, val) => {
       if (err) throw err;
-      console.log(val);
       res.send(val);
       return;
     });
@@ -250,8 +249,6 @@ let username = req.body.username;
 let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 
-console.log(`called : ${buildingName}  ${studentId}  ${timeStamp}  ${major}  ${enter_time}  ${leave_time}`);
-
 let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
 
   if(buildingName !== undefined){
@@ -280,14 +277,12 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
 
   // TODO: preprocess timeStamp
   msg += ";"
-  console.log(msg);
 
   try {
     console.log('Building Listings');
 
     pool.query(msg, (err, val) => {
       if (err) throw err;
-      console.log(val.rows);
       res.send(val.rows);
       return;
     });
