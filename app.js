@@ -5,8 +5,11 @@ const accountRouter = require("./routers/account");
 const studentRouter = require("./routers/student");
 const managerRouter = require("./routers/manager");
 const dbRouter = require("./routers/database");
+var path = require('path');
+global.appRoot = path.resolve(__dirname);
 
 var app = express();
+
 
 app.use(cookieParser());
 app.use(session({
@@ -28,4 +31,3 @@ app.get("*", (req, res) => {
 });
 
 module.exports = app;
-

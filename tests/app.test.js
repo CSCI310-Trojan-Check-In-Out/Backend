@@ -61,6 +61,9 @@ describe("Account route tests", () => {
     });
 
     test("Login success test", async () => {
+        // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+        // process.env.USE_PROXY = 'false';
+
         const response = await request(server).post("/account/login")
             .field("email", "ttrojan@usc.edu")
             .field("password", "1234567");
@@ -77,7 +80,7 @@ describe("Account route tests", () => {
     });
 });
 
-describe("Manager generic endpoint tests", () => {
+describe("Generic /manager endpoint tests", () => {
     let server;
     beforeAll((done) => {
         server = http.createServer(app);
@@ -88,14 +91,14 @@ describe("Manager generic endpoint tests", () => {
         server.close(done);
     });
 
-    test("Manager GET endpoint", async () => {
+    test("GET /manager/ endpoint", async () => {
         const response = await request(server).get("/manager");
         expect(response.statusCode).toBe(200);
         expect(response.text).toBe("Manager endpoint page. This is used to serve all APIs related to manager clients (upload CSV, view / edit history, etc.).");
     });
 
 
-    test("Manager endpoints wrong POST content types", async () => {
+    test("POST /manager/* endpoints wrong content types", async () => {
       for(let i = 0; i < manager_post_endpoints.length; ++i){
         const response = await request(server)
             .post('/manager' + manager_post_endpoints[i])
@@ -105,8 +108,11 @@ describe("Manager generic endpoint tests", () => {
       }
     });
 
-    test("Manager endpoint not login endpoints", async () => {
+    test("POST /manager/* not login endpoints", async () => {
       for(let i = 0; i < manager_post_endpoints.length; ++i){
+        if(manager_post_endpoints[i] === '/list-all-buildings'){
+          continue;
+        }
         const response = await request(server)
             .post('/manager' + manager_post_endpoints[i])
             .field("dummy", "dummy");
@@ -116,44 +122,36 @@ describe("Manager generic endpoint tests", () => {
     });
 });
 
-describe("Manager process-csv test", () => {
+describe("POST /manager/process-csv test", () => {
     let server;
     beforeAll((done) => {
         server = http.createServer(app);
         server.listen(done);
-        request(server).post("/account/login")
-            .send({email: "ttrojan@usc.edu", password: "1234567"});
-
     });
 
     afterAll((done) => {
         server.close(done);
     });
 
-    test("Manager GET endpoint", async () => {
-        const response = await request(server).get("/manager");
-        expect(response.statusCode).toBe(200);
-        expect(response.text).toBe("Manager endpoint page. This is used to serve all APIs related to manager clients (upload CSV, view / edit history, etc.).");
+    test("Upload file test", async () => {
+      const response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", "1234567");
+      console.log(response.text);
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+
+      // Declare a newName contains the timestamp
+      const newName = Date.now().toString();
+      const filePath = appRoot + `/testing_files/testing.csv`;
+      // Make sure you return the request to async execute the tests
+      response = await request(server)
+            .post('/manager/process-csv')
+            .attach('place-csv', filePath);
+      expect(response.statusCode).toBe(200);
     });
 
+    test("Database update succeed", async () => {
 
-    test("Manager endpoints wrong POST content types", async () => {
-      for(let i = 0; i < manager_post_endpoints.length; ++i){
-        const response = await request(server)
-            .post('/manager' + manager_post_endpoints[i])
-            .send({});
-        expect(response.statusCode).toBe(415);
-        expect(response.text).toBe("Wrong form Content-Type. Should be multipart/form-data.");
-      }
-    });
-
-    test("Manager endpoint not login endpoints", async () => {
-      for(let i = 0; i < manager_post_endpoints.length; ++i){
-        const response = await request(server)
-            .post('/manager' + manager_post_endpoints[i])
-            .field("dummy", "dummy");
-        expect(response.statusCode).toBe(400);
-        expect(response.text).toBe("The client is not logged in.");
-      }
     });
 });
