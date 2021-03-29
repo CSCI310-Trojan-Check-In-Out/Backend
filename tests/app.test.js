@@ -62,7 +62,7 @@ describe("Account route tests", () => {
 
     test("Login success test", async () => {
         // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-        // process.env.USE_PROXY = 'false';
+        // process.env. = 'false';
 
         const response = await request(server).post("/account/login")
             .field("email", "ttrojan@usc.edu")
@@ -100,6 +100,9 @@ describe("Generic /manager endpoint tests", () => {
 
     test("POST /manager/* endpoints wrong content types", async () => {
       for(let i = 0; i < manager_post_endpoints.length; ++i){
+        if(manager_post_endpoints[i] === '/list-all-buildings'){
+          continue;
+        }
         const response = await request(server)
             .post('/manager' + manager_post_endpoints[i])
             .send({});
@@ -110,9 +113,6 @@ describe("Generic /manager endpoint tests", () => {
 
     test("POST /manager/* not login endpoints", async () => {
       for(let i = 0; i < manager_post_endpoints.length; ++i){
-        if(manager_post_endpoints[i] === '/list-all-buildings'){
-          continue;
-        }
         const response = await request(server)
             .post('/manager' + manager_post_endpoints[i])
             .field("dummy", "dummy");

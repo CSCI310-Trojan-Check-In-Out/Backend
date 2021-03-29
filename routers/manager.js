@@ -301,14 +301,14 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
 
 // return: json
 router.post('/list-all-buildings', function(req, res) {
-  if(!req.is('multipart/form-data')) {
-    res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-    return;
-  }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
+  // if(!req.is('multipart/form-data')) {
+  //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   //   return;
   // }
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
 
   try {
     console.log('Building Listings');
