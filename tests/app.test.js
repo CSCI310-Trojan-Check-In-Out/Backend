@@ -145,7 +145,7 @@ describe("Student route tests", () => {
         expect(response.type).toBe("application/json");
 
         const response2 = await agent.post("/student/checkin")
-            .field("qrCodeToken", "INVALID");
+            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e39");
         expect(response2.statusCode).toBe(400);
         expect(response2.text).toBe("Invalid token or capacity full.");
     });
