@@ -24,13 +24,13 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     res.status(400).send("The client is not logged in.");
     return;
   }
-  console.log(req.file, req.body);
+  // console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
   var first = true;
   csv.fromPath(req.file.path)
   .on("data", function (data) {
-    console.log(data);
+    // console.log(data);
     if(first){
       first = false;
       nameRows.push(data);
@@ -49,7 +49,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
         // + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
         let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
         sql_str += `on CONFLICT (place_name) DO NOTHING;`
-        console.log(sql_str);
+        // console.log(sql_str);
         // pool.query(sql_str, (err, val) => {
         //   if (err) throw err;
         // });
@@ -61,7 +61,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
       }
     );
      } catch (err) {
-      console.log(err);
+      // console.log(err);
       res.status(400).send("Cannot insert");
       return;
     }

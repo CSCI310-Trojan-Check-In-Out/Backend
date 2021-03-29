@@ -148,7 +148,7 @@ describe("Student route tests", () => {
     });
 });
 
-describe("Generic /manager endpoint tests", () => {
+describe("Manager route endpoint tests", () => {
     let server;
     beforeAll((done) => {
         server = http.createServer(app);
@@ -190,7 +190,8 @@ describe("Generic /manager endpoint tests", () => {
     });
 });
 
-describe("POST /manager/process-csv test", () => {
+
+describe("POST /manager/list-all-buildings test", () => {
     let server;
     beforeAll((done) => {
         server = http.createServer(app);
@@ -201,25 +202,65 @@ describe("POST /manager/process-csv test", () => {
         server.close(done);
     });
 
-    test("Upload file test", async () => {
-      const response = await request(server).post("/account/login")
+    test("List all buildings test", async () => {
+      let agent = request.agent(server);
+      var response = await agent.post("/account/login")
           .field("email", "arron@usc.edu")
-          .field("password", "1234567");
-      console.log(response.text);
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
       expect(response.statusCode).toBe(200);
       expect(response.type).toBe("application/json");
 
-      // Declare a newName contains the timestamp
-      const newName = Date.now().toString();
+      response = await agent.post('/manager/list-all-buildings').field("dummy", "dummy");
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");;
+    });
+
+});
+
+
+describe("POST /manager/process-csv test", () => {
+    let server;
+    let agent;
+    beforeAll((done) => {
+        server = http.createServer(app);
+        server.listen(done);
+        agent = request.agent(server);
+
+    });
+
+    afterAll((done) => {
+        server.close(done);
+    });
+
+    test("Upload file test", async () => {
+      var response = await agent.post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'))
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+
       const filePath = appRoot + `/testing_files/testing.csv`;
       // Make sure you return the request to async execute the tests
-      response = await request(server)
-            .post('/manager/process-csv')
+      response = await agent.post('/manager/process-csv').set({connection: 'keep-alive'})
             .attach('place-csv', filePath);
       expect(response.statusCode).toBe(200);
+
     });
 
     test("Database update succeed", async () => {
-
+      var response = await request(server).post("/account/login")
+          .field("email", "arron@usc.edu")
+          .field("password", crypto.createHash('md5').update('1').digest('hex'));
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      response = await agent.post('/manager/list-all-buildings').field("dummy", "dummy");
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe("application/json");
+      for(let i = 0; i < response.body.length; ++i){
+          if(response.body[i].abbreviation === 'RTH'){
+            return;
+          }
+      }
+      fail();
     });
 });

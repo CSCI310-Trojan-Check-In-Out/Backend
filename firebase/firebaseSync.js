@@ -27,7 +27,6 @@ const userCheckout = (buildingId, userId) => {
 const updateMaximumCapacity = (buildingId, maximumCapacity) => {
     const ref = realTimeDb.ref(`buildings/${buildingId}/capacity`);
     ref.set(maximumCapacity);
-    console.log("updated capacity in firebase.");
 }
 
 const deleteAll = () => {
@@ -36,7 +35,7 @@ const deleteAll = () => {
 }
 
 const syncAllLocations = async () => {
-  console.log("syncAllLocations in firebase.");
+  // console.log("syncAllLocations in firebase.");
   await pool
     .query("select * from place")
     .then(async (res) => {
