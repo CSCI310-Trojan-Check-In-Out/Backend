@@ -11,7 +11,8 @@ CREATE TABLE account (
     email VARCHAR(100) UNIQUE,
     passcode VARCHAR(64),
     picture VARCHAR(2083),
-    is_admin SMALLINT
+    is_admin SMALLINT,
+    is_deleted SMALLINT DEFAULT 0
 );
 
 CREATE TABLE place (
