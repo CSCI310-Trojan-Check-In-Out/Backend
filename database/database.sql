@@ -6,7 +6,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE account (
 	id SERIAL UNIQUE PRIMARY KEY CHECK (id > 0),
     usc_id VARCHAR(20) UNIQUE,
-	username VARCHAR(100),
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+	full_name VARCHAR(100),
 	major VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     passcode VARCHAR(64),
