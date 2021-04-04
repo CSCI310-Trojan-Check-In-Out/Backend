@@ -66,8 +66,15 @@ const syncAllCheckins = async () => {
   await pool
     .query("select * from visit_history where leave_time is null")
     .then(async (res) => {
-      res.rows.forEach((record) => {
-        userCheckin(record.place_id, record.account_id);
+      res.rows.forEach(async (record) => {
+        let command = "select * from account where id = " + record.account_id;
+        await pool
+          .query(command)
+          .then(async (res) => {
+            res.rows.forEach(async (userInfo) => {
+              userCheckin(record.place_id, record.account_id, userInfo);
+            });
+          });
       });
     })
     .catch((err) => {
