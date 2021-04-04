@@ -2,7 +2,7 @@ INSERT INTO account (first_name, last_name, full_name, major, email, passcode, p
 VALUES ('Tommy', 'Trojan', 'Tommy Trojan', 'Computer Science', 'ttrojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/tommy.jpg', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, picture, is_admin)
-VALUES ('Billy', 'Bill', 'Billy Bill' 'Literature', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/billy.jpg', 0);
+VALUES ('Billy', 'Bill', 'Billy Bill', 'Literature', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/billy.jpg', 0);
 
 INSERT INTO account (first_name, last_name, major, email, passcode, picture, is_admin)
 VALUES ('Lily', 'Lee', 'Biology', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/lily.jpg', 0);
