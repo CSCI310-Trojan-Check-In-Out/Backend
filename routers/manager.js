@@ -250,14 +250,14 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
 // inputs: at least one from placeId, studentId, enter_time, leave_time, major
 // return: json
 router.post('/search-visit-history', upload.none(), function(req, res) {
-if(!req.is('multipart/form-data')) {
-  res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-  return;
-}
-if(!req.session.userid) {
-  res.status(400).send("The client is not logged in.");
-  return;
-}
+// if(!req.is('multipart/form-data')) {
+//   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+//   return;
+// }
+// if(!req.session.userid) {
+//   res.status(400).send("The client is not logged in.");
+//   return;
+// }
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
@@ -278,7 +278,7 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
     msg += " AND account.major ilike '%" +  major + "%'"
   }
   if(username !== undefined){
-    msg += " AND account.username ilike '%" +  username + "%'"
+    msg += " AND account.full_name ilike '%" +  username + "%'"
   }
   if(enter_time !== undefined){
     msg += " AND visit_history.enter_time>='" +  enter_time  + "'";
