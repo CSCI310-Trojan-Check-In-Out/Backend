@@ -20,11 +20,11 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
-  // console.log(req.file, req.body);
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
+  console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
   var first = true;
@@ -250,14 +250,14 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
 // inputs: at least one from placeId, studentId, enter_time, leave_time, major
 // return: json
 router.post('/search-visit-history', upload.none(), function(req, res) {
-// if(!req.is('multipart/form-data')) {
-//   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-//   return;
-// }
-// if(!req.session.userid) {
-//   res.status(400).send("The client is not logged in.");
-//   return;
-// }
+if(!req.is('multipart/form-data')) {
+  res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+  return;
+}
+if(!req.session.userid) {
+  res.status(400).send("The client is not logged in.");
+  return;
+}
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
@@ -318,11 +318,11 @@ router.post('/list-all-buildings', function(req, res) {
   //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   //   return;
   // }
-  // if(!req.session.userid) {
-  //   res.status(400).send("The client is not logged in.");
-  //   return;
-  // }
-  //
+  if(!req.session.userid) {
+    res.status(400).send("The client is not logged in.");
+    return;
+  }
+
   try {
     console.log('Building Listings');
     pool.query('Select * from place;', (err, val) => {
