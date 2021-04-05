@@ -32,7 +32,9 @@ router.post('/register', upload.none(), async (req, res) => {
     //     return;
     // }
 
-    let fullName = req.body.fullName ? req.body.fullName : null;
+    let firstName = req.body.firstName ? req.body.firstName : null;
+    let lastName = req.body.lastName ? req.body.lastName : null;
+    let fullName = (req.body.firstName && req.body.lastName) ? req.body.firstName + " " + req.body.lastName : null;
     let uscId = req.body.uscId ? req.body.uscId : null;
     let password = req.body.password;
     let email = req.body.email;
@@ -48,12 +50,12 @@ router.post('/register', upload.none(), async (req, res) => {
         res.status(400).send("The user already exists.");
         return;
     }
-    const newUserData  = await pool.query("INSERT INTO account (usc_id, username, major, email, passcode, picture, " +
-        "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
-        [uscId, fullName, major, email, password, image, parseInt(isAdmin)])
+    const newUserData  = await pool.query("INSERT INTO account (usc_id, first_name, last_name, full_name, username, major, email, passcode, picture, " +
+        "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;",
+        [uscId, firstName, lastName, fullName, major, email, password, image, parseInt(isAdmin)]);
 
     req.session.userid = newUserData.rows[0].id;
-    res.json(newUserData.rows[0])
+    res.json(newUserData.rows[0]);
 });
 
 router.post('/login', upload.none(), async (req, res) => {
@@ -142,7 +144,7 @@ router.post('/deleteAccount', upload.none(), async (req, res) => {
         res.status(400).send("Critical error: user id unrecognized. Please reset your session.");
         return;
     }
-    await pool.query("DELETE FROM account WHERE id = $1", [existingUserData.rows[0].id]);
+    await pool.query("UPDATE account SET is_deleted = 1 WHERE id = $1", [existingUserData.rows[0].id]);
 
     req.session.regenerate(function(err) {
         if(err) {
