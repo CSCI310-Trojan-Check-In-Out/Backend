@@ -20,10 +20,10 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
   }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
   // console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
@@ -41,7 +41,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
       dataRows.push(data); // push each row
     }
   })
-  .on("end", function () {
+  .on("end", async function () {
   fs.unlinkSync(req.file.path);   // remove temp file
     try {
       console.log('Upload CSV');
@@ -50,17 +50,30 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
       for(let i = 0; i < dataRows.length; i++){
         // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
         // + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
-        let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
-        sql_str += `on CONFLICT (place_name) DO NOTHING;`
-        // console.log(sql_str);
+        // let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
+        // sql_str += `on CONFLICT (place_name) DO NOTHING;`
+        let sql_str = 'UPDATE place SET capacity=' + dataRows[i][4] + " where place_name='" + dataRows[i][0] + "' and current_numbers <=" + dataRows[i][4] + " RETURNING place.capacity;"
+        console.log(sql_str);
         // pool.query(sql_str, (err, val) => {
         //   if (err) throw err;
         // });
-        const promise = pool.query(sql_str);
+        const promise = await pool.query(sql_str);
         promises.push(promise);
       }
       Promise.all(promises).then( () =>{
-        res.sendStatus(200);
+        let update_all_succeed = true
+        var message = ""
+        for(let i = 0; i < promises.length; ++i){
+          if(promises[i].rowCount == 0){
+            update_all_succeed = false;
+            message += "Building " + dataRows[i][0] + " cannot be updated;\n"
+          }
+        }
+        if(update_all_succeed){
+          res.sendStatus(200);
+        }else{
+          res.status(400).send(message);
+        }
         firebase.syncAllLocations();
       });
      } catch (err) {
@@ -157,7 +170,7 @@ router.post('/remove-place',  upload.none(), function(req, res) {
 
 // inputs: placeId, capacity
 // return: 200 or 400 with error message
-router.post('/update-capacity', upload.none(), function(req, res) {
+router.post('/update-capacity', upload.none(), async function(req, res) {
 if(!req.is('multipart/form-data')) {
   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   return;
@@ -186,12 +199,17 @@ if(placeId === undefined ||
         firebase.updateMaximumCapacity(placeId, capacity);
         res.send("Capacity Updated.");
       }else{
-        res.send("Cannot update because it is not greater than current number.");
+        pool.query('SELECT place_name FROM place where id=' + placeId + ";", (err, val) => {
+          if (err) throw err;
+          var message = "Building " + val.rows[0]['place_name'] + " cannot be updated;\n"
+          res.status(400).send(message)
+        });
       }
     });
     return;
   } catch (err) {
-    res.status(400).send("Cannot update");
+    var message = "Cannot perform update at this time;\n"
+    res.status(400).send(message);
     return;
   }
 });
@@ -232,14 +250,14 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
 // inputs: at least one from placeId, studentId, enter_time, leave_time, major
 // return: json
 router.post('/search-visit-history', upload.none(), function(req, res) {
-if(!req.is('multipart/form-data')) {
-  res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-  return;
-}
-if(!req.session.userid) {
-  res.status(400).send("The client is not logged in.");
-  return;
-}
+// if(!req.is('multipart/form-data')) {
+//   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+//   return;
+// }
+// if(!req.session.userid) {
+//   res.status(400).send("The client is not logged in.");
+//   return;
+// }
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;
@@ -250,7 +268,6 @@ let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 
 let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
-
   if(buildingName !== undefined){
     msg += " AND place.place_name ilike '%" +  buildingName + "%'";
   }
@@ -276,6 +293,7 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
   }
 
   // TODO: preprocess timeStamp
+  msg += " ORDER BY last_name"
   msg += ";"
 
   try {
@@ -300,11 +318,11 @@ router.post('/list-all-buildings', function(req, res) {
   //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
   //   return;
   // }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
-
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
+  //
   try {
     console.log('Building Listings');
     pool.query('Select * from place;', (err, val) => {
@@ -339,7 +357,7 @@ router.post('/list-current-students', upload.none(), function(req, res) {
 
   try {
     console.log('Listing all the students in this place');
-    pool.query('Select * from account, visit_history, place where account.id=visit_history.account_id AND leave_time IS NULL AND place.id = ' +  placeId + ' AND visit_history.place_id=' +  placeId +';', (err, val) => {
+    pool.query('Select * from account, visit_history, place where account.id=visit_history.account_id AND leave_time IS NULL AND place.id = ' +  placeId + ' AND visit_history.place_id=' +  placeId +' ;', (err, val) => {
       if (err) throw err;
       res.send(val.rows);
       return;
