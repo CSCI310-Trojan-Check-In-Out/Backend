@@ -4,17 +4,17 @@ VALUES ('Tommy', 'Trojan', 'Tommy Trojan', 'Computer Science', 'ttrojan@usc.edu'
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, picture, is_admin)
 VALUES ('Billy', 'Bill', 'Billy Bill', 'Literature', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/billy.jpg', 0);
 
-INSERT INTO account (first_name, last_name, major, email, passcode, picture, is_admin)
-VALUES ('Lily', 'Lee', 'Biology', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/lily.jpg', 0);
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, picture, is_admin)
+VALUES ('Lily', 'Lee', 'Biology', 'Lily Lee', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/lily.jpg', 0);
 
-INSERT INTO account (first_name, last_name, major, email, passcode, picture, is_admin)
-VALUES ('Abby', 'Wang', 'Computer Science', 'trojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/trojan.jpg', 0);
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, picture, is_admin)
+VALUES ('Abby', 'Wang', 'Abby Wang', 'Computer Science', 'trojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/trojan.jpg', 0);
 
 INSERT INTO account (first_name, last_name, full_name, email, passcode, picture, is_admin)
 VALUES ('Arron', 'Cote', 'Arron Cote', 'arron@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/arron.jpg', 1);
 
-INSERT INTO account (first_name, last_name, email, passcode, picture, is_admin)
-VALUES ('Mark', 'Redekopp', 'mark@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/mark.jpg', 1);
+INSERT INTO account (first_name, last_name, full_name, email, passcode, picture, is_admin)
+VALUES ('Mark', 'Redekopp', 'Mark Redekopp', 'mark@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/mark.jpg', 1);
 
 INSERT INTO account (first_name, last_name, full_name, email, passcode, picture, is_admin)
 VALUES ('Admin', 'Pic', 'Admin Pic', 'admin@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', './picture/admin.jpg', 1);
