@@ -176,12 +176,12 @@ describe("Student route tests", () => {
         expect(response.type).toBe("application/json");
 
         const response2 = await agent.post("/student/checkin")
-            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+            .field("qrCodeToken", "bee5b55d-32a9-47c8-8782-713a29001716");
         expect(response2.statusCode).toBe(200);
         expect(response2.type).toBe("application/json");
 
         const response3 = await agent.post("/student/checkout")
-            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+            .field("qrCodeToken", "bee5b55d-32a9-47c8-8782-713a29001716");
         expect(response3.statusCode).toBe(200);
         expect(response3.text).toBe("OK");
     });
@@ -209,16 +209,16 @@ describe("Student route tests", () => {
         expect(response.type).toBe("application/json");
 
         const response2 = await agent.post("/student/checkin")
-            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+            .field("qrCodeToken", "bee5b55d-32a9-47c8-8782-713a29001716");
         expect(response2.statusCode).toBe(200);
 
         const response3 = await agent.post("/student/checkin")
-            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+            .field("qrCodeToken", "bee5b55d-32a9-47c8-8782-713a29001716");
         expect(response3.statusCode).toBe(400);
         expect(response3.text).toBe("The client has unfinished check-in history. Please check out first.");
 
         await agent.post("/student/checkout")
-            .field("qrCodeToken", "b0c3a5cf-f526-43cc-bdaf-2862ffa46e38");
+            .field("qrCodeToken", "bee5b55d-32a9-47c8-8782-713a29001716");
     });
 
     test("Past history test", async () => {
