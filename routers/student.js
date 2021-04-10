@@ -110,7 +110,7 @@ router.post('/checkout', upload.none(), async (req, res) => {
 
     for(key in updatedHistoryData.rows) {
         FirebaseSync.userCheckout(updatedHistoryData.rows[key].place_id, req.session.userid);
-        // await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
+        await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
     }
 
     res.sendStatus(200);
