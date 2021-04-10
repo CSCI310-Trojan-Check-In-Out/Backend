@@ -76,7 +76,8 @@ router.post('/checkin', upload.none(), async (req, res) => {
     await pool.query("INSERT INTO visit_history (account_id, place_id) VALUES ($1, $2)",
         [req.session.userid, placeData.rows[0].id]);
 
-    FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid);
+    const userInfoData = await pool.query("SELECT * FROM account WHERE id = $1", [req.session.userid]);
+    FirebaseSync.userCheckin(placeData.rows[0].id, req.session.userid, userInfoData.rows[0]);
     res.json(placeData.rows[0]);
 });
 

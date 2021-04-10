@@ -72,7 +72,7 @@ router.post('/login', upload.none(), async (req, res) => {
         return;
     }
 
-    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
+    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2 AND is_deleted = 0;", [email, password])
     if(existingUserData.rows.length === 0) {
         res.status(400).send("Username or password incorrect.");
         return;
