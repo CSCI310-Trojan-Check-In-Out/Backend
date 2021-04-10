@@ -266,10 +266,14 @@ let major = req.body.major;
 let username = req.body.username;
 let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
+let userId = req.body.userId;
 
 let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
   if(buildingName !== undefined){
     msg += " AND place.place_name ilike '%" +  buildingName + "%'";
+  }
+  if (userId !== undefined) {
+    msg += " AND account.id='" +  userId + "'";
   }
   if (studentId !== undefined){
     msg += " AND account.usc_id='" +  studentId + "'";
@@ -287,7 +291,7 @@ let msg = 'Select *, visit_history.id as history_id from account, visit_history,
     msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)";
   }
 
-  if(username === undefined && buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined){
+  if(username === undefined && buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined && userId === undefined){
     res.status(400).send("Missing form data.");
     return;
   }
