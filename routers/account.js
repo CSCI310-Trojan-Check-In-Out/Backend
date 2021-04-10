@@ -70,7 +70,7 @@ router.post('/login', upload.none(), async (req, res) => {
         return;
     }
 
-    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
+    const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2 AND is_deleted = 0;", [email, password])
     if(existingUserData.rows.length === 0) {
         res.status(400).send("Username or password incorrect.");
         return;
@@ -142,7 +142,7 @@ router.post('/deleteAccount', upload.none(), async (req, res) => {
         res.status(400).send("Critical error: user id unrecognized. Please reset your session.");
         return;
     }
-    await pool.query("DELETE FROM account WHERE id = $1", [existingUserData.rows[0].id]);
+    await pool.query("UPDATE account SET is_deleted = 1 WHERE id = $1", [existingUserData.rows[0].id]);
 
     req.session.regenerate(function(err) {
         if(err) {
