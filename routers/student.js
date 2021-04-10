@@ -103,15 +103,15 @@ router.post('/checkout', upload.none(), async (req, res) => {
         "FROM (SELECT id FROM place WHERE qr_code_token = $1) AS subquery WHERE visit_history.account_id = $2 AND " +
         "visit_history.place_id = subquery.id AND visit_history.leave_time IS NULL RETURNING visit_history.place_id;", [qrCodeToken, req.session.userid]);
 
-    // if(updatedHistoryData.rows.length === 0) {
-    //     res.status(400).send("No history found.");
-    //     return;
-    // }
+    if(updatedHistoryData.rows.length === 0) {
+        res.status(400).send("No history found.");
+        return;
+    }
 
-    // for(key in updatedHistoryData.rows) {
-    //     FirebaseSync.userCheckout(updatedHistoryData.rows[key].place_id, req.session.userid);
-    //     await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
-    // }
+    for(key in updatedHistoryData.rows) {
+        FirebaseSync.userCheckout(updatedHistoryData.rows[key].place_id, req.session.userid);
+        // await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
+    }
 
     res.sendStatus(200);
 });
