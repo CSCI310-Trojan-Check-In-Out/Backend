@@ -45,7 +45,7 @@ router.post('/register', upload.none(), async (req, res) => {
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1;", [email])
     if(existingUserData.rows.length !== 0) {
-        res.status(500).send("The user already exists.");
+        res.status(400).send("The user already exists.");
         return;
     }
     const newUserData  = await pool.query("INSERT INTO account (usc_id, username, major, email, passcode, picture, " +
@@ -72,7 +72,7 @@ router.post('/login', upload.none(), async (req, res) => {
 
     const existingUserData = await pool.query("SELECT * FROM account where email = $1 AND passcode = $2;", [email, password])
     if(existingUserData.rows.length === 0) {
-        res.status(200).send("Username or password incorrect.");
+        res.status(400).send("Username or password incorrect.");
         return;
     }
     else{
