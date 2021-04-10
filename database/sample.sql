@@ -5,7 +5,7 @@ INSERT INTO account (first_name, last_name, full_name, major, email, passcode, i
 VALUES ('Billy', 'Bill', 'Billy Bill', 'Literature', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
-VALUES ('Lily', 'Lee', 'Biology', 'Lily Lee', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+VALUES ('Lily', 'Lee', 'Lily Lee', 'Biology', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
 VALUES ('Abby', 'Wang', 'Abby Wang', 'Computer Science', 'trojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
