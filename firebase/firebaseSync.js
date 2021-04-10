@@ -43,6 +43,11 @@ const updateMaximumCapacity = (buildingId, maximumCapacity) => {
   ref.set(maximumCapacity);
 };
 
+const updateCurrentNumbers = (buildingId) => {
+  const ref = realTimeDb.ref(`buildings/${buildingId}/current_numbers`);
+  ref.set(ref + 1);
+};
+
 const deleteAll = () => {
   const ref = realTimeDb.ref(`buildings`);
   ref.remove();
@@ -73,6 +78,16 @@ const syncAllCheckins = async () => {
           .then(async (res) => {
             res.rows.forEach(async (userInfo) => {
               userCheckin(record.place_id, record.account_id, userInfo);
+            });
+          });
+      });
+      res.rows.forEach(async (record) => {
+        let command = "select * from place where id = " + record.place_id;
+        await pool
+          .query(command)
+          .then(async (res) => {
+            res.rows.forEach(async (userInfo) => {
+              updateCurrentNumbers(record.place_id);
             });
           });
       });
