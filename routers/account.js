@@ -50,7 +50,7 @@ router.post('/register', upload.none(), async (req, res) => {
         res.status(400).send("The user already exists.");
         return;
     }
-    const newUserData  = await pool.query("INSERT INTO account (usc_id, first_name, last_name, full_name, username, major, email, passcode, picture, " +
+    const newUserData  = await pool.query("INSERT INTO account (usc_id, first_name, last_name, full_name, major, email, passcode, picture, " +
         "is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;",
         [uscId, firstName, lastName, fullName, major, email, password, image, parseInt(isAdmin)]);
 
