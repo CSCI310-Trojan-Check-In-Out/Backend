@@ -1,14 +1,50 @@
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
-VALUES ('Tommy', 'Trojan', 'Tommy Trojan', 'Computer Science', 'ttrojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+VALUES ('Tommy', 'Trojan', 'Tommy Trojan', 'Dornsife College of Letters, Arts and Sciences', 'ttrojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
-VALUES ('Billy', 'Bill', 'Billy Bill', 'Literature', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+VALUES ('Billy', 'Bill', 'Billy Bill', 'USC School of Architecture', 'billy@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
-VALUES ('Lily', 'Lee', 'Lily Lee', 'Biology', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+VALUES ('Lily', 'Lee', 'Lily Lee', 'Roski School of Art and Design', 'lily@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
-VALUES ('Abby', 'Wang', 'Abby Wang', 'Computer Science', 'trojan@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+VALUES ('Abby', 'Wang', 'Abby Wang', 'Iovine and Young Academy for Arts, Technology and the Business of Innovation', 'awang@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Alice', 'Wang', 'Alice Wang', 'Marshall School of Business', 'alicew@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Bob', 'Tang', 'Bob Tang', 'Viterbi School of Engineering', 'bobtang@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Charlie', 'Lee', 'Charlie Lee', 'USC School of Cinematic Arts', 'clee@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Frank', 'Lee', 'Frank Lee', 'Annenberg School for Communication and Journalism', 'franklee@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('George', 'Hua', 'George Hua', 'Kaufman School of Dance', 'georgehua@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Jason', 'Chen', 'Jason Chen', 'USC School of Dramatic Arts', 'jasonchen@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Jackie', 'Ma', 'Jackie Ma', 'Davis School of Gerontology', 'jackiema@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Patty', 'Qi', 'Patty Qi', 'Keck School of Medicine', 'pattyqi@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Tim', 'Qi', 'Tim Qi', 'Thornton School of Music', 'timqi@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Zack', 'Zhou', 'Zack Zhou', 'Chan Division of Occupational Science and Occupational Therapy', 'zack@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Molly', 'Yue', 'Molly Yue', 'Price School of Public Policy', 'molly@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
+
+INSERT INTO account (first_name, last_name, full_name, major, email, passcode, is_admin)
+VALUES ('Leo', 'Yan', 'Leo Yan', 'Pre-professional Emphases', 'leo@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 0);
 
 INSERT INTO account (first_name, last_name, full_name, email, passcode, is_admin)
 VALUES ('Arron', 'Cote', 'Arron Cote', 'arron@usc.edu', 'c4ca4238a0b923820dcc509a6f75849b', 1);
