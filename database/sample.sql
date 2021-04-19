@@ -100,5 +100,3 @@ VALUES (1, 4, '03/11/2021 10:00');
 INSERT INTO visit_history (account_id, place_id, enter_time)
 VALUES (2, 2, '03/12/2021 10:00');
 
-INSERT INTO visit_history (account_id, place_id, enter_time)
-VALUES (3, 2, '03/12/2021 10:00');

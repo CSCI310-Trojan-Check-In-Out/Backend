@@ -128,7 +128,7 @@ router.post('/pastHistory', upload.none(), async (req, res) => {
         return;
     }
     let lookupTime = parseInt(lookupTimeStr);
-    
+
     // For convenience and safety, checks out all existing history
     const pastHistoryData = await pool.query("SELECT visit_history.id, visit_history.enter_time, " +
         "visit_history.leave_time, place.place_name, place.abbreviation, place.place_address, place.picture AS place_picture, " +

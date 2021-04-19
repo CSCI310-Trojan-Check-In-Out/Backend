@@ -14,7 +14,7 @@ router.get('/', function(req, res) {
   res.send("Manager endpoint page. This is used to serve all APIs related to manager clients (upload CSV, view / edit history, etc.).");
 });
 
-// TODO, csv form
+// file: testing_files/testing.csv
 router.post('/process-csv', upload.single('place-csv'), function(req, res, next) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
@@ -48,15 +48,17 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
       var promises = []
 
       for(let i = 0; i < dataRows.length; i++){
-        // let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
-        // + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+ "');";
         // let sql_str = `INSERT INTO place (place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES  ('${dataRows[i][0]}', '${dataRows[i][1]}', '${dataRows[i][2]}', '${dataRows[i][3]}', ${dataRows[i][4]}, '${dataRows[i][5]}', '${dataRows[i][6]}')`
         // sql_str += `on CONFLICT (place_name) DO NOTHING;`
-        let sql_str = 'UPDATE place SET capacity=' + dataRows[i][4] + " where place_name='" + dataRows[i][0] + "' and current_numbers <=" + dataRows[i][4] + " RETURNING place.capacity;"
+        let sql_str = "";
+        if(dataRows[i][7] == 'u'){
+          sql_str = 'UPDATE place SET capacity=' + dataRows[i][4] + " where place_name='" + dataRows[i][0] + "' and current_numbers <=" + dataRows[i][4] + " RETURNING place.capacity;"
+        }else if(dataRows[i][7] == 'a'){
+          sql_str =  "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
+                + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+
+                "') ON CONFLICT(place_name) DO NOTHING RETURNING place.capacity";
+        }
         console.log(sql_str);
-        // pool.query(sql_str, (err, val) => {
-        //   if (err) throw err;
-        // });
         const promise = await pool.query(sql_str);
         promises.push(promise);
       }
@@ -65,8 +67,12 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
         var message = ""
         for(let i = 0; i < promises.length; ++i){
           if(promises[i].rowCount == 0){
+
             update_all_succeed = false;
-            message += "Building " + dataRows[i][0] + " cannot be updated;\n"
+            if(dataRows[i][7] =='u')
+              message += "Building " + dataRows[i][0] + " cannot be updated;\n"
+            else if(dataRows[i][7] == 'a')
+              message += "Building " + dataRows[i][0] + " cannot be added;\n"
           }
         }
         if(update_all_succeed){
@@ -77,17 +83,15 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
         firebase.syncAllLocations();
       });
      } catch (err) {
-      // console.log(err);
+      console.log(err);
       res.status(400).send("Cannot insert");
       return;
     }
-    // res.sendStatus(200);
-    // return;
   });
 
 });
 
-// inputs place_name, abbreviation, place_address, picture, capacity, open_time, close_time
+// inputs: place_name, abbreviation, place_address, capacity, open_time, close_time
 // return placeId
 router.post('/add-place', upload.none(), function(req, res) {
   if(!req.is('multipart/form-data')) {
@@ -102,7 +106,6 @@ router.post('/add-place', upload.none(), function(req, res) {
   let place_name = req.body.place_name;
   let abbreviation = req.body.abbreviation;
   let place_address = req.body.place_address;
-  let picture = req.body.picture;
   let capacity = req.body.capacity;
   let open_time = req.body.open_time;
   let close_time = req.body.close_time;
@@ -111,7 +114,6 @@ router.post('/add-place', upload.none(), function(req, res) {
   if(place_name === undefined ||
     abbreviation === undefined ||
     place_address === undefined ||
-    picture === undefined ||
     capacity === undefined ||
     open_time === undefined ||
     close_time === undefined){
@@ -119,7 +121,8 @@ router.post('/add-place', upload.none(), function(req, res) {
       return;
   }
   // TODO create a row in sql.
-  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" + place_name + "', '" + abbreviation + "','" + place_address + "','" + picture + "'," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') ON CONFLICT (place_name) DO NOTHING RETURNING id;";
+  let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" +
+  place_name + "', '" + abbreviation + "','" + place_address + "',null," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') ON CONFLICT (place_name) DO NOTHING RETURNING *;";
   //let sql_str = "INSERT INTO place (id, place_name) VALUES (DEFAULT, 'asdf');";
   //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
   try {
@@ -128,8 +131,9 @@ router.post('/add-place', upload.none(), function(req, res) {
       if (err) throw err;
       console.log(JSON.stringify(val.rows));
       res.status(200).json(val.rows);
+      firebase.syncAllLocations();
+      return;
     });
-    return;
   } catch (err) {
     console.log(err);
     res.status(400).send("cannot insert");
@@ -158,9 +162,10 @@ router.post('/remove-place',  upload.none(), function(req, res) {
     console.log('Remove place');
     pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
       if (err) throw err;
+      firebase.syncAllLocations();
+      res.sendStatus(200);
+      return;
     });
-    res.sendStatus(200);
-    return;
   } catch (err) {
     res.status(400).send("Failed to remove");
     return;
@@ -373,6 +378,42 @@ router.post('/list-current-students', upload.none(), function(req, res) {
 
 });
 
+
+// input: id (Note: account.id)
+router.post('/kickout-student', upload.none(), async (req, res) => {
+    if(!req.is('multipart/form-data')) {
+        res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+        return;
+    }
+
+    if(!req.session.userid) {
+        res.status(400).send("The client is not logged in.");
+        return;
+    }
+
+    let id = req.body.id;
+
+    if(!id) {
+        res.status(400).send("Missing form data.");
+        return;
+    }
+
+    // Check out history if the place matches the studentId
+    const updatedHistoryData = await pool.query("UPDATE visit_history SET leave_time = CURRENT_TIMESTAMP " +
+        " WHERE visit_history.account_id = $1 AND visit_history.leave_time IS NULL RETURNING visit_history.place_id;", [id]);
+
+    if(updatedHistoryData.rows.length === 0) {
+        res.status(400).send("No history found.");
+        return;
+    }
+
+    for(key in updatedHistoryData.rows) {
+        firebase.userCheckout(updatedHistoryData.rows[key].place_id, id);
+        await pool.query("UPDATE place SET current_numbers = current_numbers - 1 WHERE id = $1", [updatedHistoryData.rows[key].place_id]);
+    }
+
+    res.sendStatus(200);
+});
 
 // inputs: studentId
 // return: 200 or 400 with error message
