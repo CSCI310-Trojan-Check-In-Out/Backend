@@ -12,7 +12,7 @@ CREATE TABLE account (
 	major VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     passcode VARCHAR(64),
-    picture VARCHAR(2083),
+    picture VARCHAR(2083) DEFAULT 'https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg',
     is_admin SMALLINT,
     is_deleted SMALLINT DEFAULT 0
 );

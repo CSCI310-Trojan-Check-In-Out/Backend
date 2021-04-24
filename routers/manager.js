@@ -366,7 +366,7 @@ router.post('/list-current-students', upload.none(), function(req, res) {
 
   try {
     console.log('Listing all the students in this place');
-    pool.query('Select * from account, visit_history, place where account.id=visit_history.account_id AND leave_time IS NULL AND place.id = ' +  placeId + ' AND visit_history.place_id=' +  placeId +' ;', (err, val) => {
+    pool.query('Select *, account.picture as account_picture from account, visit_history, place where account.id=visit_history.account_id AND leave_time IS NULL AND place.id = ' +  placeId + ' AND visit_history.place_id=' +  placeId +' ;', (err, val) => {
       if (err) throw err;
       res.send(val.rows);
       return;
