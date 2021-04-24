@@ -48,8 +48,15 @@ const deleteAll = () => {
   ref.remove();
 };
 
+const deleteBuilding = (buildingId) => {
+  const ref = realTimeDb.ref(`buildings/${buildingId}`);
+  ref.remove();
+};
+
 const syncAllLocations = async () => {
   // console.log("syncAllLocations in firebase.");
+
+
   await pool
     .query("select * from place")
     .then(async (res) => {

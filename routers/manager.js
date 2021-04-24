@@ -141,6 +141,7 @@ router.post('/add-place', upload.none(), function(req, res) {
   }
 });
 
+// TODO: check if there's student in building before removing
 // inputs: placeId
 router.post('/remove-place',  upload.none(), function(req, res) {
   if(!req.is('multipart/form-data')) {
@@ -162,7 +163,7 @@ router.post('/remove-place',  upload.none(), function(req, res) {
     console.log('Remove place');
     pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
       if (err) throw err;
-      firebase.syncAllLocations();
+      firebase.deleteBuilding(placeId);
       res.sendStatus(200);
       return;
     });
