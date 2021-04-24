@@ -273,7 +273,7 @@ let enter_time = req.body.enter_time;
 let leave_time = req.body.leave_time;
 let userId = req.body.userId;
 
-let msg = 'Select *, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
+let msg = 'Select *, account.picture as account_picture, visit_history.id as history_id from account, visit_history, place where account.id=visit_history.account_id AND visit_history.place_id=place.id';
   if(buildingName !== undefined){
     msg += " AND place.place_name ilike '%" +  buildingName + "%'";
   }
