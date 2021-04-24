@@ -100,6 +100,7 @@ module.exports = {
   deleteAll,
   syncAllLocations,
   syncAllCheckins,
+  deleteBuilding
 };
 
 /* -------------------------------------------------------------------------- */
