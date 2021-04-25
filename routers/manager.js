@@ -93,15 +93,15 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
 
 // inputs: place_name, abbreviation, place_address, capacity, open_time, close_time
 // return placeId
-router.post('/add-place', upload.none(), function(req, res) {
-  if(!req.is('multipart/form-data')) {
-    res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-    return;
-  }
-  if(!req.session.userid) {
-      res.status(400).send("The client is not logged in.");
-      return;
-  }
+router.post('/add-place', upload.none(), async function(req, res) {
+  // if(!req.is('multipart/form-data')) {
+  //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+  //   return;
+  // }
+  // if(!req.session.userid) {
+  //     res.status(400).send("The client is not logged in.");
+  //     return;
+  // }
 
   let place_name = req.body.place_name;
   let abbreviation = req.body.abbreviation;
@@ -123,22 +123,22 @@ router.post('/add-place', upload.none(), function(req, res) {
   // TODO create a row in sql.
   let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers, open_time, close_time) VALUES (DEFAULT, '" +
   place_name + "', '" + abbreviation + "','" + place_address + "',null," + capacity + ", 0 ,'" + open_time + "','" + close_time + "') ON CONFLICT (place_name) DO NOTHING RETURNING *;";
-  //let sql_str = "INSERT INTO place (id, place_name) VALUES (DEFAULT, 'asdf');";
-  //let sql_str = "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, current_numbers) VALUES (DEFAULT, 'Julie place' ,'JP','Mars', 'some_url',30, 0 ) RETURNING id;";
-  try {
-    console.log('Adding place');
-    pool.query(sql_str, (err, val) => {
-      if (err) throw err;
-      console.log(JSON.stringify(val.rows));
-      res.status(200).json(val.rows);
-      firebase.syncAllLocations();
+  console.log('Adding place');
+  pool.query(sql_str, (err, val) => {
+    if (err) {
+      console.log(err);
+      res.status(400).send("Error when insert: format error");
       return;
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(400).send("cannot insert");
+    }
+    // if(val.rows.length == 0){
+    //   res.status(400).send("Failed to add: already exists");
+    //   return;
+    // }
+    console.log(JSON.stringify(val.rows));
+    res.status(200).json(val.rows);
+    firebase.syncAllLocations();
     return;
-  }
+  });
 });
 
 // TODO: check if there's student in building before removing
@@ -152,25 +152,23 @@ router.post('/remove-place',  upload.none(), function(req, res) {
       res.status(400).send("The client is not logged in.");
       return;
   }
-
   let placeId = req.body.placeId;
   if(placeId === undefined){
     res.status(400).send("Missing form data.");
     return;
   }
 
-  try {
-    console.log('Remove place');
-    pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
-      if (err) throw err;
-      firebase.deleteBuilding(placeId);
-      res.sendStatus(200);
+  console.log('Remove place');
+  pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
+    if (err) {
+      console.log(err);
+      res.status(400).send("Failed to remove: format error");
       return;
-    });
-  } catch (err) {
-    res.status(400).send("Failed to remove");
+    }
+    firebase.deleteBuilding(placeId);
+    res.sendStatus(200);
     return;
-  }
+  });
 });
 
 
