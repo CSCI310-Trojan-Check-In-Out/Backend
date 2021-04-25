@@ -57,6 +57,8 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
           sql_str =  "INSERT INTO place (id, place_name, abbreviation, place_address, picture, capacity, open_time, close_time) VALUES (DEFAULT, '"
                 + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+
                 "') ON CONFLICT(place_name) DO NOTHING RETURNING place.capacity";
+        }else if(dataRows[i][7] == 'r'){
+          sql_str = `DELETE from place where place_name='${dataRows[i][0]}' and current_numbers=0 RETURNING *;`
         }
         console.log(sql_str);
         const promise = await pool.query(sql_str);
@@ -73,6 +75,8 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
               message += "Building " + dataRows[i][0] + " cannot be updated;\n"
             else if(dataRows[i][7] == 'a')
               message += "Building " + dataRows[i][0] + " cannot be added;\n"
+            else if(dataRows[i][7] == 'r')
+              message += "Building " + dataRows[i][0] + " cannot be removed;\n"
           }
         }
         if(update_all_succeed){
@@ -84,7 +88,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
       });
      } catch (err) {
       console.log(err);
-      res.status(400).send("Cannot insert");
+      res.status(400).send("Cannot insert: Format Error");
       return;
     }
   });
@@ -94,14 +98,14 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
 // inputs: place_name, abbreviation, place_address, capacity, open_time, close_time
 // return placeId
 router.post('/add-place', upload.none(), async function(req, res) {
-  // if(!req.is('multipart/form-data')) {
-  //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-  //   return;
-  // }
-  // if(!req.session.userid) {
-  //     res.status(400).send("The client is not logged in.");
-  //     return;
-  // }
+  if(!req.is('multipart/form-data')) {
+    res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+    return;
+  }
+  if(!req.session.userid) {
+      res.status(400).send("The client is not logged in.");
+      return;
+  }
 
   let place_name = req.body.place_name;
   let abbreviation = req.body.abbreviation;
@@ -142,8 +146,8 @@ router.post('/add-place', upload.none(), async function(req, res) {
 });
 
 // TODO: check if there's student in building before removing
-// inputs: placeId
-router.post('/remove-place',  upload.none(), function(req, res) {
+// inputs: place_name
+router.post('/remove-place',  upload.none(), async function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
     return;
@@ -159,10 +163,14 @@ router.post('/remove-place',  upload.none(), function(req, res) {
   }
 
   console.log('Remove place');
-  pool.query('DELETE from place where id=' + placeId + ';', (err, val) => {
+  pool.query('DELETE from place where id=' + placeId + ' and current_numbers=0 RETURNING *;', (err, val) => {
     if (err) {
       console.log(err);
       res.status(400).send("Failed to remove: format error");
+      return;
+    }
+    if(val.rows.length == 0){
+      res.status(400).send("Failed to remove");
       return;
     }
     firebase.deleteBuilding(placeId);
