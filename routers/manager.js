@@ -58,7 +58,7 @@ router.post('/process-csv', upload.single('place-csv'), function(req, res, next)
                 + dataRows[i][0]+ "', '" + dataRows[i][1]+ "', '" + dataRows[i][2]+ "', '" + dataRows[i][3]+ "', " + dataRows[i][4]+ ", '" + dataRows[i][5]+ "','" + dataRows[i][6]+
                 "') ON CONFLICT(place_name) DO NOTHING RETURNING place.capacity";
         }else if(dataRows[i][7] == 'r'){
-          sql_str = `DELETE from place where place_name='${dataRows[i][0]}' and current_numbers=0 RETURNING *;`
+          sql_str = `UPDATE place SET is_deleted=1 where place_name='${dataRows[i][0]}' and current_numbers=0 RETURNING *;`
         }
         console.log(sql_str);
         const promise = await pool.query(sql_str);
@@ -146,7 +146,7 @@ router.post('/add-place', upload.none(), async function(req, res) {
 });
 
 // TODO: check if there's student in building before removing
-// inputs: place_name
+// inputs: placeId
 router.post('/remove-place',  upload.none(), async function(req, res) {
   if(!req.is('multipart/form-data')) {
     res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
@@ -163,14 +163,14 @@ router.post('/remove-place',  upload.none(), async function(req, res) {
   }
 
   console.log('Remove place');
-  pool.query('DELETE from place where id=' + placeId + ' and current_numbers=0 RETURNING *;', (err, val) => {
+  pool.query('UPDATE place set is_deleted=1 where id=' + placeId + ' and current_numbers=0 RETURNING *;', (err, val) => {
     if (err) {
       console.log(err);
-      res.status(400).send("Failed to remove: format error");
+      res.status(400).send("Failed to remove: format error.");
       return;
     }
     if(val.rows.length == 0){
-      res.status(400).send("Failed to remove");
+      res.status(400).send("Failed to remove: there are students in the building now.");
       return;
     }
     firebase.deleteBuilding(placeId);
@@ -302,7 +302,6 @@ let msg = 'Select *, account.picture as account_picture, visit_history.id as his
   if(leave_time !== undefined){
     msg += " AND (visit_history.leave_time<='" +  leave_time + "' or visit_history.leave_time IS NULL)";
   }
-
   if(username === undefined && buildingName === undefined && studentId === undefined && enter_time === undefined && leave_time === undefined && major === undefined && userId === undefined){
     res.status(400).send("Missing form data.");
     return;
