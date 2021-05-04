@@ -49,8 +49,8 @@ const deleteAll = () => {
 };
 
 const deleteBuilding = (buildingId) => {
-  const ref = realTimeDb.ref(`buildings/${buildingId}`);
-  ref.remove();
+  const ref = realTimeDb.ref(`buildings/${buildingId}/is_deleted`);
+  ref.set(1);
 };
 
 const syncAllLocations = async () => {
@@ -62,6 +62,11 @@ const syncAllLocations = async () => {
     .then(async (res) => {
       res.rows.forEach((location) => {
         updateMaximumCapacity(location.id, location.capacity);
+      });
+      res.rows.forEach((location) => {
+        if(location.is_deleted === 1){
+          deleteBuilding(location.id);
+        }
       });
     })
     .catch((err) => {

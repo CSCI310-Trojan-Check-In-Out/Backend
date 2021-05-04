@@ -140,7 +140,7 @@ router.post('/add-place', upload.none(), async function(req, res) {
     // }
     console.log(JSON.stringify(val.rows));
     res.status(200).json(val.rows);
-    firebase.syncAllLocations();
+    firebase.updateMaximumCapacity(val.rows[0].id, parseInt(capacity));
     return;
   });
 });
