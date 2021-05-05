@@ -50,7 +50,7 @@ router.post('/register', upload.none(), async (req, res) => {
         if(existingUserData.rows[0].is_deleted == 1) {
             const recoveredUserData = await pool.query("UPDATE account SET first_name = $1, last_name = $2, full_name = $3, " +
                 "usc_id = $4, passcode = $5, major = $6, is_deleted = 0 WHERE id = $7 RETURNING *;",
-                [firstName, lastName, fullName, uscId, password, major, uscId]);
+                [firstName, lastName, fullName, uscId, password, major, existingUserData.rows[0].id]);
             req.session.userid = recoveredUserData.rows[0].id;
             res.json(recoveredUserData.rows[0]);
             return;
