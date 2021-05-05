@@ -49,8 +49,8 @@ const deleteAll = () => {
 };
 
 const deleteBuilding = (buildingId) => {
-  const ref = realTimeDb.ref(`buildings/${buildingId}/is_deleted`);
-  ref.set(1);
+  const ref = realTimeDb.ref(`buildings/${buildingId}`);
+  ref.remove();
 };
 
 const syncAllLocations = async () => {
