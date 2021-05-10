@@ -1,0 +1,6 @@
+place_name,abbreviation,place_address,picture,capacity,open_time,close_time,type
+Powell Hall,,,,100,,,u
+Taper Hall,,,,0,,,u
+Ronald Tutor Campus Center,,,,200,,,u
+Ronald Tutor Hall of Engineering,,,,150,,,u
+Leavey Library,651 W 35th St,38ef49ff-9389-46b9-95cd-0aabb1796e1a,./picture/leavey.jpg,100,00:00:00,23:59:00,u

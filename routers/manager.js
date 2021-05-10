@@ -16,14 +16,14 @@ router.get('/', function(req, res) {
 
 // file: testing_files/testing.csv
 router.post('/process-csv', upload.single('place-csv'), function(req, res, next) {
-  if(!req.is('multipart/form-data')) {
-    res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-    return;
-  }
-  if(!req.session.userid) {
-    res.status(400).send("The client is not logged in.");
-    return;
-  }
+  // if(!req.is('multipart/form-data')) {
+  //   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+  //   return;
+  // }
+  // if(!req.session.userid) {
+  //   res.status(400).send("The client is not logged in.");
+  //   return;
+  // }
   console.log(req.file, req.body);
   var dataRows = [];
   var nameRows = [];
@@ -262,14 +262,14 @@ router.post('/get-qr-code', upload.none(), function(req, res) {
 // inputs: at least one from placeId, studentId, enter_time, leave_time, major
 // return: json
 router.post('/search-visit-history', upload.none(), function(req, res) {
-// if(!req.is('multipart/form-data')) {
-//   res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
-//   return;
-// }
-// if(!req.session.userid) {
-//   res.status(400).send("The client is not logged in.");
-//   return;
-// }
+if(!req.is('multipart/form-data')) {
+  res.status(415).send("Wrong form Content-Type. Should be multipart/form-data.");
+  return;
+}
+if(!req.session.userid) {
+  res.status(400).send("The client is not logged in.");
+  return;
+}
 
 let buildingName = req.body.buildingName;
 let studentId = req.body.studentId;

@@ -1,0 +1,4 @@
+place_name,abbreviation,place_address,picture,capacity,open_time,close_time,type
+Doheny Memorial Library,PJ,Mars,null,100,08:00:00,22:00:00,a
+Taper Hall,THH,3501 Trousdale Pkwy,./picture/thh.jpg,100,08:00:00,20:00:00,a
+Grace Ford Salvatori Hall,GFS,3601 Watt Way,null,120,07:00:00,21:00:00,a
